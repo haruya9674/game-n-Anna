@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>日本語でまなぶ ほうこう</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    #result {
+      font-size: 26px;
+      margin: 20px 0;
+      min-height: 1.5em;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      max-width: 320px;
+      margin: auto;
+    }
+
+    button {
+      font-size: 24px;
+      padding: 20px;
+      border: none;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>ほうこうを えらぼう</h1>
+
+  <div id="result">ボタンをおしてね</div>
+
+  <div class="grid">
+    <button onclick="speak('右','みぎ')">右</button>
+    <button onclick="speak('左','ひだり')">左</button>
+    <button onclick="speak('前','まえ')">前</button>
+    <button onclick="speak('後ろ','うしろ')">後ろ</button>
+    <button onclick="speak('上','うえ')">上</button>
+    <button onclick="speak('下','した')">下</button>
+  </div>
+
+  <script>
+    function speak(word, reading) {
+      document.getElementById("result").textContent =
+        word + "（" + reading + "）";
+
+      const msg = new SpeechSynthesisUtterance(reading);
+      msg.lang = "ja-JP";
+      speechSynthesis.speak(msg);
+    }
+  </script>
+
+</body>
+</html>
