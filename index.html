@@ -2,80 +2,121 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Action & Adjectives</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <title>English Sentence Builder</title>
   <style>
     body {
-      font-family: system-ui, sans-serif;
-      background: #f7f7f7;
-      text-align: center;
+      font-family: Arial, sans-serif;
       padding: 20px;
     }
-    h1 {
-      margin-bottom: 10px;
+
+    h2 {
+      margin-top: 30px;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      max-width: 360px;
-      margin: auto;
-    }
+
     button {
-      font-size: 22px;
-      padding: 18px;
-      border: none;
-      border-radius: 12px;
-      background: white;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin: 5px;
+      padding: 10px 14px;
+      font-size: 16px;
+      cursor: pointer;
     }
-    button:active {
-      transform: scale(0.96);
+
+    #sentenceBox {
+      margin-top: 15px;
+      padding: 15px;
+      min-height: 40px;
+      border: 2px solid #333;
+      font-size: 20px;
+      background: #f9f9f9;
+    }
+
+    .control-btn {
+      margin-top: 10px;
+      font-size: 16px;
     }
   </style>
 </head>
-
 <body>
 
-<h1>How is it?</h1>
-<p>Tap and listen 👂</p>
+<h1>Build a Sentence ✨</h1>
 
-<div class="grid">
-  <button onclick="speak('fast')">⚡ fast</button>
-  <button onclick="speak('slow')">🐢 slow</button>
-  <button onclick="speak('happy')">😊 happy</button>
-  <button onclick="speak('sad')">😢 sad</button>
-  <button onclick="speak('big')">⬆️ big</button>
-  <button onclick="speak('small')">⬇️ small</button>
-  <button onclick="speak('hot')">🔥 hot</button>
-  <button onclick="speak('cold')">❄️ cold</button>
-  <button onclick="speak('easy')">👍 easy</button>
-  <button onclick="speak('hard')">💪 hard</button>
-  <button onclick="speak('clean')">✨ clean</button>
-  <button onclick="speak('dirty')">🪣 dirty</button>
+<h2>Click words 👇</h2>
+
+<div>
+  <!-- Pronouns -->
+  <button onclick="addWord('I')">I</button>
+  <button onclick="addWord('You')">You</button>
+  <button onclick="addWord('We')">We</button>
+  <button onclick="addWord('They')">They</button>
+
+  <!-- Verbs -->
+  <button onclick="addWord('like')">like</button>
+  <button onclick="addWord('have')">have</button>
+  <button onclick="addWord('see')">see</button>
+  <button onclick="addWord('play')">play</button>
+  <button onclick="addWord('eat')">eat</button>
+
+  <!-- Adjectives -->
+  <button onclick="addWord('big')">big</button>
+  <button onclick="addWord('small')">small</button>
+  <button onclick="addWord('good')">good</button>
+  <button onclick="addWord('happy')">happy</button>
+
+  <!-- Nouns -->
+  <button onclick="addWord('dog')">dog</button>
+  <button onclick="addWord('cat')">cat</button>
+  <button onclick="addWord('apple')">apple</button>
+  <button onclick="addWord('cake')">cake</button>
+  <button onclick="addWord('ball')">ball</button>
+  <button onclick="addWord('car')">car</button>
 </div>
 
+<h2>Sentence 👇</h2>
+
+<div id="sentenceBox"></div>
+
+<button class="control-btn" onclick="readSentence()">🔊 Read sentence</button>
+<button class="control-btn" onclick="clearSentence()">❌ Clear</button>
+
 <script>
-  function speak(word) {
-    const msg = new SpeechSynthesisUtterance(word);
-    msg.lang = "en-US";
-    speechSynthesis.speak(msg);
+  let sentence = [];
+
+  function addWord(word) {
+    sentence.push(word);
+    updateSentence();
+
+    // speak single word
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = 'en-US';
+    speechSynthesis.speak(utterance);
+  }
+
+  function updateSentence() {
+    document.getElementById('sentenceBox').textContent = sentence.join(' ');
+  }
+
+  function readSentence() {
+    if (sentence.length === 0) return;
+
+    const utterance = new SpeechSynthesisUtterance(sentence.join(' '));
+    utterance.lang = 'en-US';
+    speechSynthesis.speak(utterance);
+  }
+
+  function clearSentence() {
+    sentence = [];
+    updateSentence();
   }
 </script>
 
 </body>
 </html>
 
-
-
-
 <h2>えらんでね</h2>
 
 <p>
-  <a href="math.html">たしざんクイズ</a>
+  <a href="math.html">🧮 たしざんクイズ</a>
 </p>
 
 <p>
-  <a href="english.html">えいごクイズ</a>
+  <a href="english.html">📘 えいごクイズ</a>
 </p>
