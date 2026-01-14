@@ -2,111 +2,315 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>ブラストゲーム</title>
+<title>Blast Puzzle</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
-  font-family:sans-serif;
+  font-family:system-ui,sans-serif;
+  background:linear-gradient(180deg,#fff1f8,#e8f8ff);
   text-align:center;
-  background:linear-gradient(#fff6fb,#f0fbff);
+  padding:16px;
 }
 
-#nameBox{
-  margin:10px;
-  font-size:16px;
+a{ text-decoration:none; color:#333; }
+
+h2{ margin:6px 0; }
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  max-width:320px;
+  margin:0 auto 8px;
+}
+
+.panel{
+  background:white;
+  padding:6px 10px;
+  border-radius:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+  font-size:14px;
+}
+
+.grid{
+  display:grid;
+  gap:6px;
+  margin:12px auto;
+}
+
+.cell{
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  cursor:pointer;
+  transition:transform .15s, opacity .4s;
+}
+
+.cell.fade{
+  opacity:0;
+  transform:scale(0.6);
+}
+
+.red{background:#ff7675;}
+.blue{background:#74b9ff;}
+.yellow{background:#ffeaa7;}
+.green{background:#55efc4;}
+.purple{background:#a29bfe;}
+
+.rocket{
+  background:linear-gradient(135deg,#fd79a8,#ffb6c1);
+}
+.bomb{
+  background:#2d3436;
+}
+
+#msg{
+  font-weight:bold;
+  margin-top:6px;
+}
+
+.rank-box{
+  background:white;
+  border-radius:16px;
+  padding:10px;
+  max-width:320px;
+  margin:14px auto;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+
+.rank-box h3{
+  margin:4px 0 8px;
+}
+
+.rank{
+  font-size:14px;
+  text-align:left;
 }
 
 input{
-  font-size:16px;
-  padding:4px;
-  width:120px;
-  text-align:center;
+  width:80%;
+  padding:6px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:14px;
 }
-
 button{
-  margin:8px;
-  padding:10px 16px;
-  font-size:16px;
+  margin-top:6px;
+  padding:6px 12px;
+  border-radius:10px;
   border:none;
-  border-radius:12px;
-  background:#ff9ecb;
-  color:white;
-}
-
-#ranking{
-  margin-top:20px;
-  background:white;
-  border-radius:16px;
-  padding:12px;
-  max-width:300px;
-  margin-left:auto;
-  margin-right:auto;
+  background:#ff9ff3;
+  font-size:14px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>💥 ブラストゲーム</h2>
+<a href="index.html">← メインメニュー</a>
+<h2 id="stage"></h2>
 
-<!-- ▼ なまえ入力 -->
-<div id="nameBox">
-  なまえ：
-  <input id="playerName" maxlength="6" placeholder="ひらがなOK">
+<div class="top">
+  <div class="panel" id="moves"></div>
+  <div class="panel" id="goal"></div>
 </div>
 
-<!-- ▼ 仮スコア表示 -->
-<div>スコア：<span id="score">0</span></div>
+<div id="grid" class="grid"></div>
+<div id="msg"></div>
 
-<!-- ▼ ボタン -->
-<button onclick="addScore()">テストで＋100</button>
-<button onclick="sendScore()">スコア送信</button>
-<button onclick="showRanking()">ランキング表示</button>
-
-<!-- ▼ ランキング -->
-<div id="ranking"></div>
+<div class="rank-box">
+  <h3>🏆 ランキング</h3>
+  <input id="name" placeholder="なまえ（ひらがな）" maxlength="5">
+  <br>
+  <button onclick="submitScore()">スコア送信</button>
+  <div class="rank" id="rank"></div>
+</div>
 
 <script>
-let currentScore = 0;
+const STAGES=[
+ {rows:6,cols:6,colors:4,moves:15,goal:{red:10}},
+ {rows:7,cols:7,colors:4,moves:18,goal:{blue:15}},
+ {rows:8,cols:8,colors:5,moves:22,goal:{yellow:20}}
+];
 
-// 仮：スコア増やす
-function addScore(){
-  currentScore += 100;
-  document.getElementById("score").textContent = currentScore;
+let stage=Number(localStorage.getItem("blastStage")||0);
+let board=[],ROWS,COLS,COLORS,movesLeft,goal,score=0;
+
+function randColor(){
+  return COLORS[Math.floor(Math.random()*COLORS.length)];
 }
 
-// スコア送信
-function sendScore(){
-  const name = document.getElementById("playerName").value.trim();
-  if(!name){
-    alert("なまえをいれてね");
+function initStage(){
+  const s=STAGES[stage];
+  ROWS=s.rows; COLS=s.cols;
+  COLORS=["red","blue","yellow","green","purple"].slice(0,s.colors);
+  movesLeft=s.moves;
+  goal=JSON.parse(JSON.stringify(s.goal));
+  board=[];
+
+  for(let r=0;r<ROWS;r++){
+    board[r]=[];
+    for(let c=0;c<COLS;c++){
+      board[r][c]={type:"color",value:randColor()};
+    }
+  }
+  document.getElementById("stage").textContent=`Stage ${stage+1}`;
+  document.getElementById("msg").textContent="";
+  updateUI();
+  draw();
+}
+
+function updateUI(){
+  document.getElementById("moves").textContent=`Moves: ${movesLeft}`;
+  document.getElementById("goal").textContent=
+    "Goal: "+Object.entries(goal).map(([k,v])=>`${k}:${v}`).join(" ");
+}
+
+function draw(){
+  const g=document.getElementById("grid");
+  g.style.gridTemplateColumns=`repeat(${COLS},1fr)`;
+  g.innerHTML="";
+  board.forEach((row,r)=>{
+    row.forEach((cell,c)=>{
+      const d=document.createElement("div");
+      d.className="cell "+(cell.type==="color"?cell.value:cell.type);
+      d.onclick=()=>tap(r,c);
+      g.appendChild(d);
+    });
+  });
+}
+
+function tap(r,c){
+  if(movesLeft<=0) return;
+  const cell=board[r][c];
+  if(!cell) return;
+
+  if(cell.type!=="color"){
+    activate(r,c,cell.type);
+    useMove();
     return;
   }
 
-  let ranking = JSON.parse(localStorage.getItem("blastRanking") || "[]");
-  ranking.push({name, score: currentScore});
-  ranking.sort((a,b)=>b.score-a.score);
-  ranking = ranking.slice(0,10);
+  const group=[];
+  flood(r,c,cell.value,group,{});
+  if(group.length<2) return;
 
-  localStorage.setItem("blastRanking", JSON.stringify(ranking));
-  alert("ランキングにとうろくしたよ！");
-  showRanking();
-}
+  let special=null;
+  if(group.length>=6) special="bomb";
+  else if(group.length>=4) special="rocket";
 
-// ランキング表示
-function showRanking(){
-  const ranking = JSON.parse(localStorage.getItem("blastRanking") || "[]");
-  let html = "<h3>🏆 ランキング</h3>";
-
-  ranking.forEach((r,i)=>{
-    html += `${i+1}い：${r.name} ${r.score}てん<br>`;
+  group.forEach(([x,y])=>{
+    if(goal[board[x][y].value]>0) goal[board[x][y].value]--;
+    board[x][y]=null;
+    score+=10;
   });
 
-  document.getElementById("ranking").innerHTML = html;
+  if(special){
+    const [x,y]=group[0];
+    board[x][y]={type:special};
+  }
+
+  collapse();
+  refill();
+  useMove();
 }
 
-showRanking();
+function flood(r,c,color,group,seen){
+  const k=r+","+c;
+  if(seen[k]||r<0||c<0||r>=ROWS||c>=COLS) return;
+  const cell=board[r][c];
+  if(!cell||cell.type!=="color"||cell.value!==color) return;
+  seen[k]=1;
+  group.push([r,c]);
+  flood(r+1,c,color,group,seen);
+  flood(r-1,c,color,group,seen);
+  flood(r,c+1,color,group,seen);
+  flood(r,c-1,color,group,seen);
+}
+
+function activate(r,c,type){
+  board[r][c]=null;
+
+  if(type==="rocket"){
+    for(let i=0;i<COLS;i++) board[r][i]=null;
+    for(let i=0;i<ROWS;i++) board[i][c]=null;
+    score+=100;
+  }
+
+  if(type==="bomb"){
+    for(let dr=-2;dr<=2;dr++)
+      for(let dc=-2;dc<=2;dc++){
+        const nr=r+dr,nc=c+dc;
+        if(nr>=0&&nc>=0&&nr<ROWS&&nc<COLS){
+          board[nr][nc]=null;
+        }
+      }
+    score+=150;
+  }
+
+  collapse();
+  refill();
+}
+
+function collapse(){
+  for(let c=0;c<COLS;c++){
+    let stack=[];
+    for(let r=ROWS-1;r>=0;r--) if(board[r][c]) stack.push(board[r][c]);
+    for(let r=ROWS-1;r>=0;r--) board[r][c]=stack.shift()||null;
+  }
+}
+
+function refill(){
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      if(!board[r][c]){
+        board[r][c]={type:"color",value:randColor()};
+      }
+    }
+  }
+  draw();
+}
+
+function useMove(){
+  movesLeft--;
+  updateUI();
+  checkClear();
+}
+
+function checkClear(){
+  if(Object.values(goal).every(v=>v<=0)){
+    stage++;
+    localStorage.setItem("blastStage",stage);
+    if(stage<STAGES.length){
+      setTimeout(initStage,700);
+    }else{
+      document.getElementById("msg").textContent="🏆 ALL CLEAR!";
+    }
+  }else if(movesLeft<=0){
+    document.getElementById("msg").textContent="💥 FAILED";
+  }
+}
+
+/* ===== ランキング ===== */
+function submitScore(){
+  const name=document.getElementById("name").value.trim();
+  if(!name.match(/^[ぁ-んー]{1,5}$/)) return alert("ひらがな1〜5文字");
+
+  const list=JSON.parse(localStorage.getItem("blastRank")||"[]");
+  list.push({name,score});
+  list.sort((a,b)=>b.score-a.score);
+  localStorage.setItem("blastRank",JSON.stringify(list.slice(0,10)));
+  renderRank();
+}
+
+function renderRank(){
+  const list=JSON.parse(localStorage.getItem("blastRank")||"[]");
+  document.getElementById("rank").innerHTML=
+    list.map((r,i)=>`${i+1}. ${r.name} - ${r.score}`).join("<br>");
+}
+
+renderRank();
+initStage();
 </script>
 
 </body>
