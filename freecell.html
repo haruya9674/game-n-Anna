@@ -8,87 +8,78 @@
 <style>
 body {
   font-family: system-ui, sans-serif;
-  background: linear-gradient(180deg,#e8f4ff,#fff);
+  background: #e8f4ff;
   text-align: center;
   padding: 15px;
 }
 
-a {
-  text-decoration: none;
-  color: #333;
-}
-
-.menu, .game {
-  max-width: 420px;
-  margin: auto;
-}
-
 h1 { margin-bottom: 10px; }
 
+.back {
+  display:inline-block;
+  margin:10px;
+  padding:6px 12px;
+  background:white;
+  border-radius:10px;
+}
+
 .level-btn {
-  display: block;
-  margin: 12px 0;
-  padding: 16px;
-  font-size: 18px;
-  border-radius: 16px;
-  background: white;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  background:white;
+  padding:14px;
+  margin:12px auto;
+  border-radius:16px;
+  max-width:300px;
+  box-shadow:0 4px 8px rgba(0,0,0,0.15);
 }
 
 .board {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:10px;
 }
 
 .cell {
-  width: 60px;
-  min-height: 80px;
-  border-radius: 10px;
-  background: #ffffffcc;
+  width:60px;
+  height:80px;
+  background:white;
+  border-radius:10px;
   box-shadow: inset 0 0 0 2px #ccc;
-  padding: 4px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 .tableau {
-  display: flex;
-  gap: 6px;
+  display:flex;
+  gap:8px;
+  justify-content:center;
 }
 
 .stack {
-  width: 48px;
+  width:50px;
 }
 
 .card {
-  background: white;
-  border-radius: 8px;
-  padding: 6px 0;
-  margin-top: -40px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  font-size: 16px;
+  background:white;
+  border-radius:8px;
+  padding:6px 0;
+  margin-top:-40px;
+  box-shadow:0 2px 4px rgba(0,0,0,0.2);
 }
 
-.red { color: crimson; }
-.black { color: black; }
+.red { color:crimson; }
+.black { color:black; }
 
 .selected {
-  outline: 3px solid #4da3ff;
-}
-
-.back {
-  margin: 10px 0;
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 10px;
-  background: white;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  outline:3px solid #4da3ff;
 }
 </style>
 </head>
 
 <body>
 
-<div class="menu" id="menu">
+<div id="menu">
   <h1>🃏 FreeCell</h1>
   <div class="level-btn" onclick="start(1)">🟢 Easy (Kids)</div>
   <div class="level-btn" onclick="start(2)">🟡 Normal</div>
@@ -96,102 +87,104 @@ h1 { margin-bottom: 10px; }
   <a href="index.html" class="back">← Play Menu</a>
 </div>
 
-<div class="game" id="game" style="display:none">
-  <a class="back" onclick="backMenu()">← Level Select</a>
-  <div class="board">
-    <div id="freecells" class="board"></div>
-    <div id="goals" class="board"></div>
-  </div>
+<div id="game" style="display:none">
+  <a class="back" onclick="backMenu()">← Level</a>
+  <div class="board" id="freecells"></div>
+  <div class="board" id="goals"></div>
   <div class="tableau" id="tableau"></div>
 </div>
 
 <script>
-let level = 1;
-let freeCount = 4;
-let freecells = [];
-let goals = [];
-let tableau = [];
-let selected = null;
+let level=1, freeCount=4;
+let freecells=[], goals=[], tableau=[];
+let selected=null;
 
-const suits = ["♠","♥","♦","♣"];
-const colors = { "♠":"black","♣":"black","♥":"red","♦":"red" };
+const suits=["♠","♥","♦","♣"];
+const colors={ "♠":"black","♣":"black","♥":"red","♦":"red" };
 
 function start(lv){
-  level = lv;
-  freeCount = lv === 3 ? 2 : 4;
-  document.getElementById("menu").style.display="none";
-  document.getElementById("game").style.display="block";
+  level=lv;
+  freeCount=lv===3?2:4;
+  menu.style.display="none";
+  game.style.display="block";
   init();
 }
 
 function backMenu(){
-  document.getElementById("game").style.display="none";
-  document.getElementById("menu").style.display="block";
+  game.style.display="none";
+  menu.style.display="block";
 }
 
 function init(){
-  let deck = [];
-  suits.forEach(s=>{
-    for(let n=1;n<=13;n++){
-      deck.push({n,s,c:colors[s]});
-    }
-  });
+  let deck=[];
+  suits.forEach(s=>{for(let n=1;n<=13;n++)deck.push({n,s,c:colors[s]});});
   deck.sort(()=>Math.random()-0.5);
 
-  freecells = Array(freeCount).fill(null);
-  goals = Array(4).fill([]);
-  tableau = Array.from({length:8},()=>[]);
+  freecells=Array(freeCount).fill(null);
+  goals=[[],[],[],[]];
+  tableau=Array.from({length:8},()=>[]);
 
   deck.forEach((c,i)=>tableau[i%8].push(c));
+  selected=null;
   render();
 }
 
 function render(){
-  const f = document.getElementById("freecells");
-  const g = document.getElementById("goals");
-  const t = document.getElementById("tableau");
-  f.innerHTML=""; g.innerHTML=""; t.innerHTML="";
+  freecellsDiv.innerHTML="";
+  goalsDiv.innerHTML="";
+  tableauDiv.innerHTML="";
 
   freecells.forEach((c,i)=>{
-    const d=document.createElement("div");
-    d.className="cell";
-    if(c) d.appendChild(cardEl(c));
-    d.onclick=()=>select({type:"free",i});
-    f.appendChild(d);
+    const d=cellDiv(c);
+    d.onclick=()=>tap({type:"free",i});
+    freecellsDiv.appendChild(d);
   });
 
-  goals.forEach((arr,i)=>{
-    const d=document.createElement("div");
-    d.className="cell";
-    if(arr.length) d.appendChild(cardEl(arr[arr.length-1]));
-    d.onclick=()=>select({type:"goal",i});
-    g.appendChild(d);
+  goals.forEach((a,i)=>{
+    const d=cellDiv(a[a.length-1]);
+    d.onclick=()=>tap({type:"goal",i});
+    goalsDiv.appendChild(d);
   });
 
-  tableau.forEach((arr,i)=>{
+  tableau.forEach((a,i)=>{
     const s=document.createElement("div");
     s.className="stack";
-    arr.forEach((c,idx)=>{
-      const el=cardEl(c);
-      if(idx===arr.length-1 && selected?.ref?.type==="tab" && selected.ref.i===i)
-        el.classList.add("selected");
-      el.onclick=()=>select({type:"tab",i});
+    a.forEach((c,idx)=>{
+      const el=cardDiv(c);
+      if(idx===a.length-1){
+        if(selected && selected.ref.type==="tab" && selected.ref.i===i)
+          el.classList.add("selected");
+        el.onclick=()=>tap({type:"tab",i});
+      }
       s.appendChild(el);
     });
-    t.appendChild(s);
+    tableauDiv.appendChild(s);
   });
 }
 
-function cardEl(c){
+function cellDiv(card){
   const d=document.createElement("div");
-  d.className=`card ${c.c}`;
-  d.textContent = (c.n===1?"A":c.n===11?"J":c.n===12?"Q":c.n===13?"K":c.n)+c.s;
+  d.className="cell";
+  if(card) d.appendChild(cardDiv(card));
   return d;
 }
 
-function select(ref){
+function cardDiv(c){
+  const d=document.createElement("div");
+  d.className=`card ${c.c}`;
+  d.textContent=(c.n===1?"A":c.n===11?"J":c.n===12?"Q":c.n===13?"K":c.n)+c.s;
+  return d;
+}
+
+function top(ref){
+  if(ref.type==="free") return freecells[ref.i];
+  if(ref.type==="goal") return goals[ref.i].slice(-1)[0];
+  if(ref.type==="tab") return tableau[ref.i].slice(-1)[0];
+}
+
+function tap(ref){
   if(!selected){
-    const c=getTop(ref);
+    const c=top(ref);
     if(c) selected={card:c,ref};
   }else{
     move(ref);
@@ -200,38 +193,27 @@ function select(ref){
   render();
 }
 
-function getTop(ref){
-  if(ref.type==="free") return freecells[ref.i];
-  if(ref.type==="goal") return goals[ref.i].slice(-1)[0];
-  if(ref.type==="tab") return tableau[ref.i].slice(-1)[0];
-}
-
 function move(to){
-  const from=selected.ref;
-  const card=selected.card;
+  const from=selected.ref, c=selected.card;
 
   if(to.type==="free" && freecells[to.i]==null){
-    freecells[to.i]=card;
-    remove(from);
+    freecells[to.i]=c; remove(from); return;
   }
 
   if(to.type==="tab"){
-    const top=tableau[to.i].slice(-1)[0];
-    if(!top ||
-      (level===1 && card.n===top.n-1) ||
-      (level>=2 && card.n===top.n-1 && card.c!==top.c)){
-        tableau[to.i].push(card);
-        remove(from);
+    const t=top(to);
+    if(!t ||
+      (level===1 && c.n===t.n-1) ||
+      (level>=2 && c.n===t.n-1 && c.c!==t.c)){
+        tableau[to.i].push(c); remove(from);
     }
   }
 
   if(to.type==="goal"){
-    const arr=goals[to.i];
-    const top=arr.slice(-1)[0];
-    if((!top && card.n===1) ||
-      (top && card.n===top.n+1 && (level<3 || card.s===top.s))){
-        arr.push(card);
-        remove(from);
+    const t=top(to);
+    if((!t && c.n===1) ||
+      (t && c.n===t.n+1 && (level<3||c.s===t.s))){
+        goals[to.i].push(c); remove(from);
     }
   }
 }
