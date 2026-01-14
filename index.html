@@ -3,16 +3,11 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- ▼ ここ重要：ブラウザ＆共有用タイトル -->
+<!-- 🔽 ここが「リンク共有時の表示名」 -->
 <title>Annaの知育ゲーム</title>
+<meta name="description" content="Annaの知育ゲーム｜たしざん・しんけいすいじゃく・フリーセル・ブラストパズルで楽しく学ぼう！">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- ▼ OGP（LINE / WhatsApp / SNS 用） -->
-<meta property="og:title" content="Annaの知育ゲーム">
-<meta property="og:description" content="こども向け知育ゲーム集｜たしざん・しんけいすいじゃく・ブラストゲーム">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://haruya9674.github.io/Japanese-learning/">
 
 <style>
 body{
@@ -25,8 +20,16 @@ body{
     linear-gradient(180deg, #fff6fb, #f0fbff);
 }
 
-h1{font-size:26px;margin-bottom:10px;}
-.sub{font-size:14px;color:#666;margin-bottom:25px;}
+h1{
+  font-size:26px;
+  margin-bottom:6px;
+}
+
+.sub{
+  font-size:14px;
+  color:#666;
+  margin-bottom:25px;
+}
 
 .menu{
   display:grid;
@@ -36,31 +39,89 @@ h1{font-size:26px;margin-bottom:10px;}
   margin:auto;
 }
 
-a{text-decoration:none;}
+a{
+  text-decoration:none;
+}
 
 .card{
   background:white;
   border-radius:22px;
   padding:18px 14px;
   box-shadow:0 6px 14px rgba(0,0,0,0.18);
+  transition:transform .15s;
 }
 
-.title{font-size:20px;font-weight:bold;}
-.en{font-size:13px;color:#666;margin-top:4px;}
+.card:active{
+  transform:scale(0.97);
+}
+
+.title{
+  font-size:20px;
+  font-weight:bold;
+}
+
+.en{
+  font-size:13px;
+  color:#666;
+  margin-top:4px;
+}
 </style>
 </head>
 
 <body>
 
 <h1>🎮 Annaの知育ゲーム</h1>
-<div class="sub">Choose a game & have fun!</div>
+<div class="sub">たのしくあそんで、まなぼう！</div>
 
 <div class="menu">
 
-  <a href="math.html"><div class="card"><div class="title">➕ たしざんクイズ</div><div class="en">Addition Quiz</div></div></a>
-  <a href="memory.html"><div class="card"><div class="title">🧠 しんけいすいじゃく</div><div class="en">Memory Game</div></div></a>
-  <a href="freecell.html"><div class="card"><div class="title">🃏 フリーセル</div><div class="en">FreeCell</div></div></a>
-  <a href="blast.html"><div class="card"><div class="title">💥 ブラストゲーム</div><div class="en">Blast Puzzle</div></div></a>
+  <!-- たしざん LV1 -->
+  <a href="math.html">
+    <div class="card">
+      <div class="title">➕ たしざんクイズ</div>
+      <div class="en">Addition Quiz LV1</div>
+    </div>
+  </a>
+
+  <!-- たしざん LV2 -->
+  <a href="math_lv2.html">
+    <div class="card">
+      <div class="title">➕ たしざんクイズ LV2</div>
+      <div class="en">Addition Quiz Level 2</div>
+    </div>
+  </a>
+
+  <!-- たしざん LV3 -->
+  <a href="math_lv3.html">
+    <div class="card">
+      <div class="title">➕ たしざんクイズ LV3</div>
+      <div class="en">Addition Quiz Level 3</div>
+    </div>
+  </a>
+
+  <!-- しんけいすいじゃく -->
+  <a href="memory.html">
+    <div class="card">
+      <div class="title">🧠 しんけいすいじゃく</div>
+      <div class="en">Memory Game</div>
+    </div>
+  </a>
+
+  <!-- フリーセル -->
+  <a href="freecell.html">
+    <div class="card">
+      <div class="title">🃏 フリーセル</div>
+      <div class="en">FreeCell</div>
+    </div>
+  </a>
+
+  <!-- ブラストゲーム -->
+  <a href="blast.html">
+    <div class="card">
+      <div class="title">💥 ブラストゲーム</div>
+      <div class="en">Blast Puzzle Game</div>
+    </div>
+  </a>
 
 </div>
 
