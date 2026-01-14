@@ -2,162 +2,230 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>FreeCell</title>
+<title>Easy FreeCell</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
-  font-family: system-ui, sans-serif;
-  background: linear-gradient(180deg,#eef6ff,#ffffff);
+  font-family:system-ui,sans-serif;
+  background:#eaf6ff;
   text-align:center;
-  padding:10px;
+  padding:12px;
 }
 
-button{
-  border:none;
-  border-radius:14px;
-  padding:10px 16px;
+a.back{
+  display:inline-block;
+  margin-bottom:10px;
+  padding:8px 14px;
   background:white;
-  box-shadow:0 3px 8px rgba(0,0,0,.2);
-  font-size:15px;
+  border-radius:12px;
+  text-decoration:none;
+  color:#333;
+  box-shadow:0 2px 6px rgba(0,0,0,0.2);
 }
 
-.back-btn{
-  display:block;
-  margin:8px auto 12px;
+h1{ margin:6px 0 10px 0; }
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  max-width:700px;
+  margin:0 auto 12px auto;
 }
 
-h1{ margin:10px 0; }
+.area{
+  display:flex;
+  gap:8px;
+}
 
-#levelMenu button{
-  margin:8px;
-  width:200px;
-  font-size:18px;
+.cell{
+  width:70px;
+  height:90px;
+  border-radius:12px;
+  background:#ffffffaa;
+  box-shadow:0 2px 6px rgba(0,0,0,0.2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
 }
 
 .tableau{
-  display:flex;
-  gap:14px;
-  justify-content:center;
-  margin-top:10px;
-  overflow-x:auto;
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  gap:8px;
+  max-width:700px;
+  margin:auto;
 }
 
-.stack{ width:72px; }
+.column{
+  background:#ffffff88;
+  border-radius:12px;
+  padding:6px;
+  min-height:120px;
+}
 
 .card{
+  width:60px;
+  height:80px;
+  border-radius:10px;
   background:white;
-  border-radius:12px;
-  margin-top:-26px;
-  padding:10px 0;
-  font-size:22px;
-  font-weight:600;
-  box-shadow:0 3px 6px rgba(0,0,0,.25);
+  margin:4px auto;
+  font-size:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,0.25);
+  cursor:pointer;
 }
 
-.card:first-child{ margin-top:0; }
+.red{ color:#d33; }
+.black{ color:#222; }
 
 .selected{
-  outline:4px solid #4da3ff;
+  outline:3px solid #4aa3ff;
 }
-
-.hidden{ display:none; }
 </style>
 </head>
 
 <body>
 
-<button class="back-btn" onclick="location.href='index.html'">🏠 Main Menu</button>
+<a href="index.html" class="back">← Play Menu</a>
+<h1>🃏 Easy FreeCell</h1>
 
-<h1>🃏 FreeCell</h1>
-
-<div id="levelMenu">
-  <button onclick="startGame(4)">Easy</button><br>
-  <button onclick="startGame(6)">Normal</button><br>
-  <button onclick="startGame(8)">Hard</button>
+<div class="top">
+  <div class="area" id="freecells"></div>
+  <div class="area" id="goals"></div>
 </div>
 
-<div id="game" class="hidden">
-  <button onclick="showLevels()">← Level Select</button>
-  <div class="tableau" id="tableau"></div>
-</div>
+<div class="tableau" id="tableau"></div>
 
 <script>
-let stacks=[], selected=null;
+const suits = ["♠","♥","♦","♣"];
+const colors = { "♠":"black", "♣":"black", "♥":"red", "♦":"red" };
 
-function showLevels(){
-  document.getElementById("game").classList.add("hidden");
-  document.getElementById("levelMenu").classList.remove("hidden");
-}
+let deck = [];
+let selectedCard = null;
 
-function startGame(cols){
-  stacks=[];
-  selected=null;
-  document.getElementById("levelMenu").classList.add("hidden");
-  document.getElementById("game").classList.remove("hidden");
-
-  let deck=[];
-  ["♠","♥","♦","♣"].forEach(s=>{
-    for(let i=1;i<=13;i++) deck.push(i+s);
-  });
+function createDeck(){
+  deck = [];
+  for(let s of suits){
+    for(let n=1;n<=13;n++){
+      deck.push({num:n, suit:s});
+    }
+  }
   deck.sort(()=>Math.random()-0.5);
-
-  for(let i=0;i<cols;i++) stacks.push([]);
-
-  deck.forEach((c,i)=>stacks[i%cols].push(c));
-  render();
 }
 
-function render(){
-  const t=document.getElementById("tableau");
-  t.innerHTML="";
-  stacks.forEach((stack,i)=>{
-    const d=document.createElement("div");
-    d.className="stack";
-    d.onclick=()=>tapStack(i);
+function cardText(c){
+  const map={1:"A",11:"J",12:"Q",13:"K"};
+  return (map[c.num]||c.num)+c.suit;
+}
 
-    stack.forEach((card,j)=>{
-      const c=document.createElement("div");
-      c.className="card";
-      if(selected && selected.i===i && selected.j===j) c.classList.add("selected");
-      c.textContent=card;
-      d.appendChild(c);
-    });
+function setup(){
+  createDeck();
 
-    t.appendChild(d);
+  const freecells=document.getElementById("freecells");
+  const goals=document.getElementById("goals");
+  const tableau=document.getElementById("tableau");
+
+  freecells.innerHTML="";
+  goals.innerHTML="";
+  tableau.innerHTML="";
+
+  for(let i=0;i<4;i++){
+    freecells.appendChild(makeCell("free"));
+    goals.appendChild(makeCell("goal"));
+  }
+
+  for(let i=0;i<8;i++){
+    const col=document.createElement("div");
+    col.className="column";
+    col.onclick=()=>moveToColumn(col);
+    tableau.appendChild(col);
+  }
+
+  deck.forEach((c,i)=>{
+    const card=makeCard(c);
+    tableau.children[i%8].appendChild(card);
   });
 }
 
-function tapStack(i){
-  const stack=stacks[i];
-  if(stack.length===0){
-    if(selected){
-      stack.push(selected.card);
-      stacks[selected.i].splice(selected.j,1);
-      selected=null;
-      render();
-    }
-    return;
-  }
+function makeCell(type){
+  const d=document.createElement("div");
+  d.className="cell";
+  d.dataset.type=type;
+  d.onclick=()=>moveToCell(d);
+  return d;
+}
 
-  const j=stack.length-1;
-  const card=stack[j];
+function makeCard(c){
+  const d=document.createElement("div");
+  d.className=`card ${colors[c.suit]}`;
+  d.textContent=cardText(c);
+  d.dataset.num=c.num;
+  d.dataset.suit=c.suit;
+  d.onclick=(e)=>{
+    e.stopPropagation();
+    selectCard(d);
+  };
+  return d;
+}
 
-  if(!selected){
-    selected={i,j,card};
-    render();
-  }else{
-    if(selected.i===i){
-      selected=null;
-      render();
-      return;
-    }
-    stack.push(selected.card);
-    stacks[selected.i].splice(selected.j,1);
-    selected=null;
-    render();
+function selectCard(card){
+  if(selectedCard) selectedCard.classList.remove("selected");
+  selectedCard=card;
+  card.classList.add("selected");
+}
+
+function canStack(src,dst){
+  if(!dst) return true;
+  return colors[src.dataset.suit]!==colors[dst.dataset.suit]
+    && parseInt(src.dataset.num)+1===parseInt(dst.dataset.num);
+}
+
+function moveToColumn(col){
+  if(!selectedCard) return;
+  const last=col.lastElementChild;
+  if(canStack(selectedCard,last)){
+    col.appendChild(selectedCard);
+    selectedCard.classList.remove("selected");
+    selectedCard=null;
   }
 }
+
+function moveToCell(cell){
+  if(!selectedCard) return;
+
+  if(cell.dataset.type==="free"){
+    if(cell.children.length===0){
+      cell.appendChild(selectedCard);
+      selectedCard.classList.remove("selected");
+      selectedCard=null;
+    }
+  }
+
+  if(cell.dataset.type==="goal"){
+    if(cell.children.length===0 && selectedCard.dataset.num==="1"){
+      cell.appendChild(selectedCard);
+      selectedCard.classList.remove("selected");
+      selectedCard=null;
+    }else if(cell.children.length>0){
+      const top=cell.lastElementChild;
+      if(
+        top.dataset.suit===selectedCard.dataset.suit &&
+        parseInt(top.dataset.num)+1===parseInt(selectedCard.dataset.num)
+      ){
+        cell.appendChild(selectedCard);
+        selectedCard.classList.remove("selected");
+        selectedCard=null;
+      }
+    }
+  }
+}
+
+setup();
 </script>
 
 </body>
