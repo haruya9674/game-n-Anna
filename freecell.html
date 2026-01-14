@@ -13,7 +13,6 @@ body {
   padding: 15px;
 }
 
-/* 共通 */
 h1 { margin-bottom: 10px; }
 
 .back {
@@ -25,18 +24,21 @@ h1 { margin-bottom: 10px; }
   box-shadow:0 2px 6px rgba(0,0,0,0.2);
 }
 
-/* レベル選択 */
+/* レベルボタン */
 .level-btn {
-  background:white;
-  padding:18px;
-  margin:14px auto;
-  border-radius:18px;
-  max-width:320px;
-  font-size:18px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.15);
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: 14px auto;
+  padding: 18px;
+  font-size: 18px;
+  border-radius: 18px;
+  border: none;
+  background: white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
-/* 上部エリア */
+/* 上部 */
 .board {
   display:flex;
   justify-content:center;
@@ -44,7 +46,6 @@ h1 { margin-bottom: 10px; }
   margin-bottom:14px;
 }
 
-/* フリーセル・ゴール */
 .cell {
   width:72px;
   height:96px;
@@ -56,7 +57,7 @@ h1 { margin-bottom: 10px; }
   justify-content:center;
 }
 
-/* 下の列 */
+/* 下 */
 .tableau {
   display:flex;
   gap:14px;
@@ -96,17 +97,17 @@ h1 { margin-bottom: 10px; }
 <div id="menu">
   <h1>🃏 FreeCell</h1>
 
-  <div class="level-btn" onclick="start(1)">
+  <button class="level-btn" onclick="start(1)">
     🟢 Easy (Kids)
-  </div>
+  </button>
 
-  <div class="level-btn" onclick="start(2)">
+  <button class="level-btn" onclick="start(2)">
     🟡 Normal
-  </div>
+  </button>
 
-  <div class="level-btn" onclick="start(3)">
+  <button class="level-btn" onclick="start(3)">
     🔴 Hard (Adult)
-  </div>
+  </button>
 
   <a href="index.html" class="back">← Play Menu</a>
 </div>
