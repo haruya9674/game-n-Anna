@@ -7,44 +7,57 @@
 
 <style>
 body{
-  font-family:system-ui,sans-serif;
-  background:linear-gradient(180deg,#e3f2fd,#fff);
+  font-family:system-ui, sans-serif;
   text-align:center;
   padding:20px;
+  background:
+    radial-gradient(circle at 20% 20%, #ffe4f0 0%, transparent 40%),
+    radial-gradient(circle at 80% 30%, #e0f7ff 0%, transparent 40%),
+    linear-gradient(180deg, #fff6fb, #f0fbff);
 }
 
 h1{
+  font-size:26px;
   margin-bottom:10px;
 }
 
 .sub{
-  color:#555;
   font-size:14px;
-  margin-bottom:20px;
+  color:#666;
+  margin-bottom:25px;
 }
 
 .menu{
   display:grid;
   grid-template-columns:1fr;
   gap:14px;
-  max-width:320px;
+  max-width:340px;
   margin:auto;
 }
 
-a.game{
-  display:block;
-  padding:18px;
-  font-size:20px;
+a{
   text-decoration:none;
-  color:#333;
-  background:white;
-  border-radius:16px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.2);
 }
 
-a.game span{
-  display:block;
-  font-size:14px;
+.card{
+  background:white;
+  border-radius:22px;
+  padding:18px 14px;
+  box-shadow:0 6px 14px rgba(0,0,0,0.18);
+  transition:transform .15s;
+}
+
+.card:active{
+  transform:scale(0.97);
+}
+
+.title{
+  font-size:20px;
+  font-weight:bold;
+}
+
+.en{
+  font-size:13px;
   color:#666;
   margin-top:4px;
 }
@@ -54,33 +67,50 @@ a.game span{
 <body>
 
 <h1>🎮 Play Menu</h1>
-<div class="sub">Choose a game and have fun!</div>
+<div class="sub">Choose a game & have fun!</div>
 
 <div class="menu">
 
-  <a href="math_lv1.html" class="game">
-    ➕ たしざん LV1
-    <span>Time Attack Mode</span>
+  <a href="math.html">
+    <div class="card">
+      <div class="title">➕ たしざんクイズ</div>
+      <div class="en">Addition Quiz LV1</div>
+    </div>
   </a>
 
-  <a href="math_lv2.html" class="game">
-    ➕ たしざん LV2
-    <span>More numbers</span>
+  <a href="math_lv2.html">
+    <div class="card">
+      <div class="title">➕ たしざんクイズ LV2</div>
+      <div class="en">Addition Quiz Level 2</div>
+    </div>
   </a>
 
-  <a href="math_lv3.html" class="game">
-    ➕ たしざん LV3
-    <span>Challenge mode</span>
+  <a href="math_lv3.html">
+    <div class="card">
+      <div class="title">➕ たしざんクイズ LV3</div>
+      <div class="en">Addition Quiz Level 3</div>
+    </div>
   </a>
 
-  <a href="freecell.html" class="game">
-    🃏 フリーセル
-    <span>Classic Card Game</span>
+  <a href="memory.html">
+    <div class="card">
+      <div class="title">🧠 しんけいすいじゃく</div>
+      <div class="en">Memory Game</div>
+    </div>
   </a>
 
-  <a href="toonblast.html" class="game">
-    💥 Block Blast
-    <span>Toon Blast style</span>
+  <a href="freecell.html">
+    <div class="card">
+      <div class="title">🃏 フリーセル</div>
+      <div class="en">FreeCell (Simple)</div>
+    </div>
+  </a>
+
+  <a href="blast.html">
+    <div class="card">
+      <div class="title">💥 ブラストゲーム</div>
+      <div class="en">Blast Puzzle Game</div>
+    </div>
   </a>
 
 </div>
