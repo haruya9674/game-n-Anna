@@ -2,277 +2,111 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Blast Puzzle｜Annaの知育ゲーム</title>
+<title>ブラストゲーム</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
-  font-family:system-ui,sans-serif;
-  background:linear-gradient(180deg,#fff1f8,#e8f8ff);
+  font-family:sans-serif;
   text-align:center;
-  padding:16px;
+  background:linear-gradient(#fff6fb,#f0fbff);
 }
-a.back{
-  display:inline-block;
-  margin-bottom:10px;
-  padding:8px 14px;
-  background:white;
+
+#nameBox{
+  margin:10px;
+  font-size:16px;
+}
+
+input{
+  font-size:16px;
+  padding:4px;
+  width:120px;
+  text-align:center;
+}
+
+button{
+  margin:8px;
+  padding:10px 16px;
+  font-size:16px;
+  border:none;
   border-radius:12px;
-  text-decoration:none;
-  color:#333;
-  box-shadow:0 2px 6px rgba(0,0,0,.2);
+  background:#ff9ecb;
+  color:white;
 }
-h2{margin:6px 0;}
-.top{
-  display:flex;
-  justify-content:space-between;
-  max-width:320px;
-  margin:0 auto 10px;
-}
-.panel{
+
+#ranking{
+  margin-top:20px;
   background:white;
-  padding:6px 10px;
-  border-radius:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,.2);
-  font-size:14px;
-}
-.grid{
-  display:grid;
-  gap:6px;
-  margin:10px auto;
-}
-.cell{
-  width:42px;
-  height:42px;
-  border-radius:10px;
-  cursor:pointer;
-  animation:pop .2s;
-}
-@keyframes pop{
-  from{transform:scale(.8);opacity:.5}
-  to{transform:scale(1);opacity:1}
-}
-.red{background:#ff7675;}
-.blue{background:#74b9ff;}
-.yellow{background:#ffeaa7;}
-.green{background:#55efc4;}
-.purple{background:#a29bfe;}
-
-.rocket{
-  background:linear-gradient(45deg,#fd79a8,#ffeaa7);
-}
-.bomb{
-  background:radial-gradient(circle,#2d3436,#000);
-}
-
-.fade{
-  animation:fade .4s forwards;
-}
-@keyframes fade{
-  to{opacity:0;transform:scale(.6)}
-}
-
-#msg{
-  font-size:20px;
-  margin-top:10px;
+  border-radius:16px;
+  padding:12px;
+  max-width:300px;
+  margin-left:auto;
+  margin-right:auto;
 }
 </style>
 </head>
 
 <body>
 
-<a href="index.html" class="back">← メインメニュー</a>
-<a href="ranking.html" class="back">🏆 ランキング</a>
+<h2>💥 ブラストゲーム</h2>
 
-<h2 id="stage"></h2>
-
-<div class="top">
-  <div class="panel" id="moves"></div>
-  <div class="panel" id="goal"></div>
+<!-- ▼ なまえ入力 -->
+<div id="nameBox">
+  なまえ：
+  <input id="playerName" maxlength="6" placeholder="ひらがなOK">
 </div>
 
-<div id="grid" class="grid"></div>
-<div id="msg"></div>
+<!-- ▼ 仮スコア表示 -->
+<div>スコア：<span id="score">0</span></div>
+
+<!-- ▼ ボタン -->
+<button onclick="addScore()">テストで＋100</button>
+<button onclick="sendScore()">スコア送信</button>
+<button onclick="showRanking()">ランキング表示</button>
+
+<!-- ▼ ランキング -->
+<div id="ranking"></div>
 
 <script>
-/* ===== ステージ設定 ===== */
-const STAGES=[
- {rows:6,cols:6,colors:4,moves:15,goal:{red:10}},
- {rows:7,cols:7,colors:4,moves:18,goal:{blue:15}},
- {rows:8,cols:8,colors:5,moves:22,goal:{yellow:20}}
-];
+let currentScore = 0;
 
-let stage=Number(localStorage.getItem("blastStage")||0);
-let board=[],ROWS,COLS,COLORS,movesLeft,goal;
-
-/* ===== 基本処理 ===== */
-function randColor(){
-  return COLORS[Math.floor(Math.random()*COLORS.length)];
+// 仮：スコア増やす
+function addScore(){
+  currentScore += 100;
+  document.getElementById("score").textContent = currentScore;
 }
 
-function initStage(){
-  const s=STAGES[stage];
-  ROWS=s.rows; COLS=s.cols;
-  COLORS=["red","blue","yellow","green","purple"].slice(0,s.colors);
-  movesLeft=s.moves;
-  goal=JSON.parse(JSON.stringify(s.goal));
-
-  board=[];
-  for(let r=0;r<ROWS;r++){
-    board[r]=[];
-    for(let c=0;c<COLS;c++){
-      board[r][c]={type:"color",value:randColor()};
-    }
-  }
-  document.getElementById("stage").textContent=`Stage ${stage+1}`;
-  document.getElementById("msg").textContent="";
-  updateUI(); draw();
-}
-
-function updateUI(){
-  moves.textContent=`Moves: ${movesLeft}`;
-  goalEl.textContent="Goal: "+
-    Object.entries(goal).map(([k,v])=>`${k}:${v}`).join(" ");
-}
-
-const moves=document.getElementById("moves");
-const goalEl=document.getElementById("goal");
-
-function draw(){
-  const g=document.getElementById("grid");
-  g.style.gridTemplateColumns=`repeat(${COLS},1fr)`;
-  g.innerHTML="";
-  board.forEach((row,r)=>{
-    row.forEach((cell,c)=>{
-      const d=document.createElement("div");
-      d.className="cell "+(cell.type==="color"?cell.value:cell.type);
-      d.onclick=()=>tap(r,c,d);
-      g.appendChild(d);
-    });
-  });
-}
-
-function tap(r,c,el){
-  if(movesLeft<=0) return;
-  const cell=board[r][c];
-  if(!cell) return;
-
-  if(cell.type!=="color"){
-    el.classList.add("fade");
-    setTimeout(()=>{
-      activate(r,c,cell.type);
-      useMove();
-    },200);
+// スコア送信
+function sendScore(){
+  const name = document.getElementById("playerName").value.trim();
+  if(!name){
+    alert("なまえをいれてね");
     return;
   }
 
-  const group=[];
-  flood(r,c,cell.value,group,{});
-  if(group.length<2) return;
+  let ranking = JSON.parse(localStorage.getItem("blastRanking") || "[]");
+  ranking.push({name, score: currentScore});
+  ranking.sort((a,b)=>b.score-a.score);
+  ranking = ranking.slice(0,10);
 
-  let special=null;
-  if(group.length>=6) special="bomb";
-  else if(group.length>=4) special="rocket";
+  localStorage.setItem("blastRanking", JSON.stringify(ranking));
+  alert("ランキングにとうろくしたよ！");
+  showRanking();
+}
 
-  group.forEach(([x,y])=>{
-    if(goal[board[x][y].value]>0) goal[board[x][y].value]--;
-    board[x][y]=null;
+// ランキング表示
+function showRanking(){
+  const ranking = JSON.parse(localStorage.getItem("blastRanking") || "[]");
+  let html = "<h3>🏆 ランキング</h3>";
+
+  ranking.forEach((r,i)=>{
+    html += `${i+1}い：${r.name} ${r.score}てん<br>`;
   });
 
-  if(special){
-    const [x,y]=group[0];
-    board[x][y]={type:special};
-  }
-
-  collapse(); refill();
-  useMove();
+  document.getElementById("ranking").innerHTML = html;
 }
 
-function flood(r,c,color,group,seen){
-  const k=r+","+c;
-  if(seen[k]||r<0||c<0||r>=ROWS||c>=COLS) return;
-  const cell=board[r][c];
-  if(!cell||cell.type!=="color"||cell.value!==color) return;
-  seen[k]=1; group.push([r,c]);
-  flood(r+1,c,color,group,seen);
-  flood(r-1,c,color,group,seen);
-  flood(r,c+1,color,group,seen);
-  flood(r,c-1,color,group,seen);
-}
-
-function activate(r,c,type){
-  board[r][c]=null;
-
-  if(type==="rocket"){
-    for(let i=0;i<COLS;i++) board[r][i]=null;
-    for(let i=0;i<ROWS;i++) board[i][c]=null;
-  }
-  if(type==="bomb"){
-    for(let dr=-2;dr<=2;dr++)
-      for(let dc=-2;dc<=2;dc++){
-        const nr=r+dr,nc=c+dc;
-        if(nr>=0&&nc>=0&&nr<ROWS&&nc<COLS)
-          board[nr][nc]=null;
-      }
-  }
-  collapse(); refill();
-}
-
-function collapse(){
-  for(let c=0;c<COLS;c++){
-    let stack=[];
-    for(let r=ROWS-1;r>=0;r--) if(board[r][c]) stack.push(board[r][c]);
-    for(let r=ROWS-1;r>=0;r--) board[r][c]=stack.shift()||null;
-  }
-}
-
-function refill(){
-  for(let r=0;r<ROWS;r++)
-    for(let c=0;c<COLS;c++)
-      if(!board[r][c])
-        board[r][c]={type:"color",value:randColor()};
-  draw();
-}
-
-function useMove(){
-  movesLeft--;
-  updateUI();
-  checkClear();
-}
-
-/* ===== クリア＆保存 ===== */
-function sanitizeName(name){
-  name=name.replace(/[^ぁ-んa-zA-Z0-9]/g,"");
-  if(name.length>8) name=name.slice(0,8);
-  if(name==="") name="Player";
-  return name;
-}
-
-function saveScore(){
-  let name=prompt("なまえをいれてね（ひらがなOK）","");
-  name=sanitizeName(name);
-  const data=JSON.parse(localStorage.getItem("blastRanking")||"[]");
-  data.push({name,score:stage+1,time:Date.now()});
-  localStorage.setItem("blastRanking",JSON.stringify(data));
-}
-
-function checkClear(){
-  if(Object.values(goal).every(v=>v<=0)){
-    stage++;
-    localStorage.setItem("blastStage",stage);
-    if(stage<STAGES.length){
-      setTimeout(initStage,800);
-    }else{
-      document.getElementById("msg").textContent="🏆 ALL CLEAR!";
-      saveScore();
-      localStorage.removeItem("blastStage");
-    }
-  }else if(movesLeft<=0){
-    document.getElementById("msg").textContent="💥 FAILED";
-  }
-}
-
-initStage();
+showRanking();
 </script>
 
 </body>
