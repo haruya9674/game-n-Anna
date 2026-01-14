@@ -10,7 +10,7 @@ body{
   font-family:system-ui,sans-serif;
   background:linear-gradient(180deg,#fff1f8,#e8f8ff);
   text-align:center;
-  padding:16px;
+  padding:12px;
 }
 
 a{ text-decoration:none; color:#333; }
@@ -20,7 +20,7 @@ h2{ margin:6px 0; }
 .top{
   display:flex;
   justify-content:space-between;
-  max-width:320px;
+  max-width:340px;
   margin:0 auto 8px;
 }
 
@@ -32,10 +32,12 @@ h2{ margin:6px 0; }
   font-size:14px;
 }
 
+/* ★★★ ここ重要 ★★★ */
 .grid{
   display:grid;
   gap:6px;
   margin:12px auto;
+  width:fit-content;
 }
 
 .cell{
@@ -44,11 +46,6 @@ h2{ margin:6px 0; }
   border-radius:12px;
   cursor:pointer;
   transition:transform .15s, opacity .4s;
-}
-
-.cell.fade{
-  opacity:0;
-  transform:scale(0.6);
 }
 
 .red{background:#ff7675;}
@@ -73,18 +70,9 @@ h2{ margin:6px 0; }
   background:white;
   border-radius:16px;
   padding:10px;
-  max-width:320px;
-  margin:14px auto;
+  max-width:340px;
+  margin:16px auto;
   box-shadow:0 2px 6px rgba(0,0,0,.2);
-}
-
-.rank-box h3{
-  margin:4px 0 8px;
-}
-
-.rank{
-  font-size:14px;
-  text-align:left;
 }
 
 input{
@@ -92,7 +80,6 @@ input{
   padding:6px;
   border-radius:8px;
   border:1px solid #ccc;
-  font-size:14px;
 }
 button{
   margin-top:6px;
@@ -100,7 +87,6 @@ button{
   border-radius:10px;
   border:none;
   background:#ff9ff3;
-  font-size:14px;
 }
 </style>
 </head>
@@ -115,15 +101,18 @@ button{
   <div class="panel" id="goal"></div>
 </div>
 
+<!-- ★ ゲーム盤 -->
 <div id="grid" class="grid"></div>
+
 <div id="msg"></div>
 
+<!-- ★ ランキング -->
 <div class="rank-box">
   <h3>🏆 ランキング</h3>
   <input id="name" placeholder="なまえ（ひらがな）" maxlength="5">
   <br>
   <button onclick="submitScore()">スコア送信</button>
-  <div class="rank" id="rank"></div>
+  <div id="rank"></div>
 </div>
 
 <script>
@@ -161,14 +150,14 @@ function initStage(){
 }
 
 function updateUI(){
-  document.getElementById("moves").textContent=`Moves: ${movesLeft}`;
-  document.getElementById("goal").textContent=
+  moves.textContent=`Moves: ${movesLeft}`;
+  goal.textContent=
     "Goal: "+Object.entries(goal).map(([k,v])=>`${k}:${v}`).join(" ");
 }
 
 function draw(){
   const g=document.getElementById("grid");
-  g.style.gridTemplateColumns=`repeat(${COLS},1fr)`;
+  g.style.gridTemplateColumns=`repeat(${COLS}, 44px)`;
   g.innerHTML="";
   board.forEach((row,r)=>{
     row.forEach((cell,c)=>{
@@ -184,12 +173,6 @@ function tap(r,c){
   if(movesLeft<=0) return;
   const cell=board[r][c];
   if(!cell) return;
-
-  if(cell.type!=="color"){
-    activate(r,c,cell.type);
-    useMove();
-    return;
-  }
 
   const group=[];
   flood(r,c,cell.value,group,{});
@@ -212,44 +195,21 @@ function tap(r,c){
 
   collapse();
   refill();
-  useMove();
+  movesLeft--;
+  updateUI();
 }
 
 function flood(r,c,color,group,seen){
   const k=r+","+c;
   if(seen[k]||r<0||c<0||r>=ROWS||c>=COLS) return;
   const cell=board[r][c];
-  if(!cell||cell.type!=="color"||cell.value!==color) return;
+  if(!cell||cell.value!==color) return;
   seen[k]=1;
   group.push([r,c]);
   flood(r+1,c,color,group,seen);
   flood(r-1,c,color,group,seen);
   flood(r,c+1,color,group,seen);
   flood(r,c-1,color,group,seen);
-}
-
-function activate(r,c,type){
-  board[r][c]=null;
-
-  if(type==="rocket"){
-    for(let i=0;i<COLS;i++) board[r][i]=null;
-    for(let i=0;i<ROWS;i++) board[i][c]=null;
-    score+=100;
-  }
-
-  if(type==="bomb"){
-    for(let dr=-2;dr<=2;dr++)
-      for(let dc=-2;dc<=2;dc++){
-        const nr=r+dr,nc=c+dc;
-        if(nr>=0&&nc>=0&&nr<ROWS&&nc<COLS){
-          board[nr][nc]=null;
-        }
-      }
-    score+=150;
-  }
-
-  collapse();
-  refill();
 }
 
 function collapse(){
@@ -271,27 +231,7 @@ function refill(){
   draw();
 }
 
-function useMove(){
-  movesLeft--;
-  updateUI();
-  checkClear();
-}
-
-function checkClear(){
-  if(Object.values(goal).every(v=>v<=0)){
-    stage++;
-    localStorage.setItem("blastStage",stage);
-    if(stage<STAGES.length){
-      setTimeout(initStage,700);
-    }else{
-      document.getElementById("msg").textContent="🏆 ALL CLEAR!";
-    }
-  }else if(movesLeft<=0){
-    document.getElementById("msg").textContent="💥 FAILED";
-  }
-}
-
-/* ===== ランキング ===== */
+/* ランキング */
 function submitScore(){
   const name=document.getElementById("name").value.trim();
   if(!name.match(/^[ぁ-んー]{1,5}$/)) return alert("ひらがな1〜5文字");
@@ -305,8 +245,7 @@ function submitScore(){
 
 function renderRank(){
   const list=JSON.parse(localStorage.getItem("blastRank")||"[]");
-  document.getElementById("rank").innerHTML=
-    list.map((r,i)=>`${i+1}. ${r.name} - ${r.score}`).join("<br>");
+  rank.innerHTML=list.map((r,i)=>`${i+1}. ${r.name} - ${r.score}`).join("<br>");
 }
 
 renderRank();
