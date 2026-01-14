@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Addition Quiz Level 3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f7f7f7;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 5px;
+    }
+    .sub {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 15px;
+    }
+    .question {
+      font-size: 32px;
+      margin: 20px 0;
+    }
+    .count {
+      font-size: 16px;
+      color: #555;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      max-width: 340px;
+      margin: auto;
+    }
+    button {
+      font-size: 24px;
+      padding: 18px;
+      border: none;
+      border-radius: 12px;
+      background: white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    #result {
+      font-size: 22px;
+      margin-top: 20px;
+      min-height: 1.5em;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>
+  たしざんクイズ LV3<br>
+  <span class="sub">Addition Quiz Level 3</span>
+</h1>
+
+<div class="count" id="count"></div>
+<div id="question" class="question"></div>
+<div class="grid" id="choices"></div>
+<div id="result"></div>
+
+<script>
+  const quizzes = [
+    {a:18,b:17},{a:24,b:16},{a:27,b:15},{a:19,b:22},{a:28,b:14},
+    {a:35,b:6},{a:26,b:19},{a:17,b:29},{a:34,b:8},{a:21,b:18},
+    {a:32,b:17},{a:25,b:24},{a:36,b:9},{a:29,b:21},{a:33,b:16},
+    {a:27,b:23},{a:38,b:5},{a:31,b:19},{a:22,b:28},{a:34,b:14}
+  ];
+
+  let current = 0;
+
+  function makeChoices(answer) {
+    const set = new Set([answer]);
+    while (set.size < 4) {
+      set.add(answer + Math.floor(Math.random() * 11) - 5);
+    }
+    return [...set].sort(() => Math.random() - 0.5);
+  }
+
+  function showQuiz() {
+    const q = quizzes[current];
+    const answer = q.a + q.b;
+
+    document.getElementById("count").textContent =
+      `Question ${current + 1} / ${quizzes.length}`;
+
+    document.getElementById("question").textContent =
+      `${q.a} + ${q.b} = ?`;
+
+    const choicesDiv = document.getElementById("choices");
+    choicesDiv.innerHTML = "";
+
+    makeChoices(answer).forEach(num => {
+      const btn = document.createElement("button");
+      btn.textContent = num;
+      btn.onclick = () => check(num, answer);
+      choicesDiv.appendChild(btn);
+    });
+
+    document.getElementById("result").textContent = "";
+  }
+
+  function check(num, answer) {
+    const result = document.getElementById("result");
+
+    if (num === answer) {
+      result.textContent = "⭕ Correct!";
+      speak("Correct");
+
+      current++;
+      if (current < quizzes.length) {
+        setTimeout(showQuiz, 800);
+      } else {
+        setTimeout(() => {
+          document.getElementById("question").textContent = "🏆 Amazing!";
+          document.getElementById("choices").innerHTML = "";
+          document.getElementById("count").textContent = "";
+          result.textContent = "Anna, you are a math star!";
+          speak("You are a math star Anna");
+        }, 800);
+      }
+    } else {
+      result.textContent = "❌ Try again";
+      speak("Try again");
+    }
+  }
+
+  function speak(text) {
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = "en-US";
+    speechSynthesis.speak(msg);
+  }
+
+  showQuiz();
+</script>
+
+</body>
+</html>
