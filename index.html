@@ -1,122 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>English Sentence Builder</title>
+  <title>メニュー</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: system-ui, sans-serif;
+      text-align: center;
+      padding: 40px;
+      background: #f7f7f7;
+    }
+    h1 {
+      margin-bottom: 30px;
+    }
+    a {
+      display: block;
+      margin: 20px auto;
       padding: 20px;
-    }
-
-    h2 {
-      margin-top: 30px;
-    }
-
-    button {
-      margin: 5px;
-      padding: 10px 14px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #sentenceBox {
-      margin-top: 15px;
-      padding: 15px;
-      min-height: 40px;
-      border: 2px solid #333;
-      font-size: 20px;
-      background: #f9f9f9;
-    }
-
-    .control-btn {
-      margin-top: 10px;
-      font-size: 16px;
+      max-width: 300px;
+      background: white;
+      border-radius: 12px;
+      text-decoration: none;
+      color: black;
+      font-size: 22px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
   </style>
 </head>
+
 <body>
 
-<h1>Build a Sentence ✨</h1>
+<h1>あそぶメニュー</h1>
 
-<h2>Click words 👇</h2>
-
-<div>
-  <!-- Pronouns -->
-  <button onclick="addWord('I')">I</button>
-  <button onclick="addWord('You')">You</button>
-  <button onclick="addWord('We')">We</button>
-  <button onclick="addWord('They')">They</button>
-
-  <!-- Verbs -->
-  <button onclick="addWord('like')">like</button>
-  <button onclick="addWord('have')">have</button>
-  <button onclick="addWord('see')">see</button>
-  <button onclick="addWord('play')">play</button>
-  <button onclick="addWord('eat')">eat</button>
-
-  <!-- Adjectives -->
-  <button onclick="addWord('big')">big</button>
-  <button onclick="addWord('small')">small</button>
-  <button onclick="addWord('good')">good</button>
-  <button onclick="addWord('happy')">happy</button>
-
-  <!-- Nouns -->
-  <button onclick="addWord('dog')">dog</button>
-  <button onclick="addWord('cat')">cat</button>
-  <button onclick="addWord('apple')">apple</button>
-  <button onclick="addWord('cake')">cake</button>
-  <button onclick="addWord('ball')">ball</button>
-  <button onclick="addWord('car')">car</button>
-</div>
-
-<h2>Sentence 👇</h2>
-
-<div id="sentenceBox"></div>
-
-<button class="control-btn" onclick="readSentence()">🔊 Read sentence</button>
-<button class="control-btn" onclick="clearSentence()">❌ Clear</button>
-
-<script>
-  let sentence = [];
-
-  function addWord(word) {
-    sentence.push(word);
-    updateSentence();
-
-    // speak single word
-    const utterance = new SpeechSynthesisUtterance(word);
-    utterance.lang = 'en-US';
-    speechSynthesis.speak(utterance);
-  }
-
-  function updateSentence() {
-    document.getElementById('sentenceBox').textContent = sentence.join(' ');
-  }
-
-  function readSentence() {
-    if (sentence.length === 0) return;
-
-    const utterance = new SpeechSynthesisUtterance(sentence.join(' '));
-    utterance.lang = 'en-US';
-    speechSynthesis.speak(utterance);
-  }
-
-  function clearSentence() {
-    sentence = [];
-    updateSentence();
-  }
-</script>
+<a href="math.html">➕ たしざんクイズ</a>
 
 </body>
 </html>
-
-<h2>えらんでね</h2>
-
-<p>
-  <a href="math.html">🧮 たしざんクイズ</a>
-</p>
-
-<p>
-  <a href="english.html">📘 えいごクイズ</a>
-</p>
