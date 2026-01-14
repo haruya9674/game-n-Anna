@@ -12,6 +12,17 @@
       text-align: center;
       padding: 20px;
     }
+    .back {
+      display: inline-block;
+      margin-bottom: 15px;
+      padding: 8px 14px;
+      font-size: 14px;
+      text-decoration: none;
+      color: #333;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
     h1 {
       margin-bottom: 5px;
     }
@@ -52,6 +63,8 @@
 </head>
 
 <body>
+
+<a href="index.html" class="back">← Play Menu</a>
 
 <h1>
   たしざんクイズ LV2<br>
@@ -119,7 +132,7 @@
           document.getElementById("question").textContent = "🎉 Clear!";
           document.getElementById("choices").innerHTML = "";
           document.getElementById("count").textContent = "";
-          result.textContent = "Anna, great job! You did it!";
+          result.textContent = "Anna, great job!";
           speak("Great job Anna");
         }, 800);
       }
