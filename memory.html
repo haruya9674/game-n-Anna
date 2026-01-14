@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Memory Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(180deg, #e8f8ff, #fff1f8);
+      text-align: center;
+      padding: 20px;
+    }
+
+    .back {
+      display: inline-block;
+      margin-bottom: 15px;
+      padding: 8px 14px;
+      font-size: 14px;
+      text-decoration: none;
+      color: #333;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    h1 {
+      margin-bottom: 5px;
+    }
+
+    .sub {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      max-width: 320px;
+      margin: auto;
+    }
+
+    .card {
+      height: 70px;
+      font-size: 32px;
+      border-radius: 14px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .card.open,
+    .card.matched {
+      background: #fff7cc;
+    }
+
+    #message {
+      font-size: 22px;
+      margin-top: 20px;
+      min-height: 1.5em;
+    }
+  </style>
+</head>
+
+<body>
+
+<a href="index.html" class="back">← Play Menu</a>
+
+<h1>🧠 Memory Game</h1>
+<div class="sub">Find the same pictures</div>
+
+<div class="grid" id="grid"></div>
+<div id="message"></div>
+
+<script>
+  const icons = ["🍎","🐶","⭐","🚗","🍰","🐱","🎈","🌈"];
+  let cards = [];
+  let first = null;
+  let second = null;
+  let lock = false;
+  let matchedCount = 0;
+
+  function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+  }
+
+  function startGame() {
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    matchedCount = 0;
+    document.getElementById("message").textContent = "";
+
+    cards = shuffle([...icons, ...icons]);
+
+    cards.forEach(icon => {
+      const div = document.createElement("div");
+      div.className = "card";
+      div.textContent = "❓";
+      div.dataset.icon = icon;
+      div.onclick = () => flip(div);
+      grid.appendChild(div);
+    });
+  }
+
+  function flip(card) {
+    if (lock || card.classList.contains("open") || card.classList.contains("matched")) return;
+
+    card.textContent = card.dataset.icon;
+    card.classList.add("open");
+
+    if (!first) {
+      first = card;
+    } else {
+      second = card;
+      lock = true;
+
+      if (first.dataset.icon === second.dataset.icon) {
+        first.classList.add("matched");
+        second.classList.add("matched");
+        first = second = null;
+        lock = false;
+        matchedCount++;
+
+        speak("Good job");
+
+        if (matchedCount === icons.length) {
+          document.getElementById("message").textContent =
+            "🎉 Great memory, Anna!";
+          speak("Great memory Anna");
+        }
+      } else {
+        speak("Try again");
+        setTimeout(() => {
+          first.textContent = "❓";
+          second.textContent = "❓";
+          first.classList.remove("open");
+          second.classList.remove("open");
+          first = second = null;
+          lock = false;
+        }, 800);
+      }
+    }
+  }
+
+  function speak(text) {
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = "en-US";
+    speechSynthesis.speak(msg);
+  }
+
+  startGame();
+</script>
+
+</body>
+</html>
