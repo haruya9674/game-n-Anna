@@ -15,7 +15,7 @@
 
     .back {
       display: inline-block;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
       padding: 8px 14px;
       font-size: 14px;
       text-decoration: none;
@@ -32,7 +32,23 @@
     .sub {
       font-size: 14px;
       color: #666;
+      margin-bottom: 15px;
+    }
+
+    .mode {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
       margin-bottom: 20px;
+    }
+
+    .mode button {
+      padding: 10px 14px;
+      font-size: 14px;
+      border: none;
+      border-radius: 12px;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
 
     .grid {
@@ -74,27 +90,36 @@
 <a href="index.html" class="back">← Play Menu</a>
 
 <h1>🧠 Memory Game</h1>
-<div class="sub">Find the same pictures</div>
+<div class="sub">Find the same cards</div>
+
+<div class="mode">
+  <button onclick="startEmoji()">🎨 Emoji</button>
+  <button onclick="startCards()">🃏 Cards</button>
+</div>
 
 <div class="grid" id="grid"></div>
 <div id="message"></div>
 
 <script>
-  const icons = ["🍎","🐶","⭐","🚗","🍰","🐱","🎈","🌈"];
+  const emojiIcons = ["🍎","🐶","⭐","🚗","🍰","🐱","🎈","🌈"];
+  const cardIcons  = ["A♠","A♥","K♠","K♥","Q♠","Q♥","J♠","J♥"];
+
   let cards = [];
   let first = null;
   let second = null;
   let lock = false;
   let matchedCount = 0;
 
-  function shuffle(array) {
-    return array.sort(() => Math.random() - 0.5);
+  function shuffle(arr) {
+    return arr.sort(() => Math.random() - 0.5);
   }
 
-  function startGame() {
+  function startGame(icons) {
     const grid = document.getElementById("grid");
     grid.innerHTML = "";
     matchedCount = 0;
+    first = second = null;
+    lock = false;
     document.getElementById("message").textContent = "";
 
     cards = shuffle([...icons, ...icons]);
@@ -107,6 +132,16 @@
       div.onclick = () => flip(div);
       grid.appendChild(div);
     });
+  }
+
+  function startEmoji() {
+    startGame(emojiIcons);
+    speak("Emoji memory game");
+  }
+
+  function startCards() {
+    startGame(cardIcons);
+    speak("Card memory game");
   }
 
   function flip(card) {
@@ -130,7 +165,7 @@
 
         speak("Good job");
 
-        if (matchedCount === icons.length) {
+        if (matchedCount === cards.length / 2) {
           document.getElementById("message").textContent =
             "🎉 Great memory, Anna!";
           speak("Great memory Anna");
@@ -155,7 +190,8 @@
     speechSynthesis.speak(msg);
   }
 
-  startGame();
+  // start with emoji game
+  startEmoji();
 </script>
 
 </body>
