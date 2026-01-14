@@ -2,95 +2,90 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Blast Game</title>
+<title>Blast Puzzle</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 body{
-  font-family: system-ui, sans-serif;
-  background:
-    radial-gradient(circle at 20% 20%, #ffe4f0 0%, transparent 40%),
-    radial-gradient(circle at 80% 30%, #e0f7ff 0%, transparent 40%),
-    linear-gradient(180deg, #fff6fb, #f0fbff);
+  font-family:system-ui,sans-serif;
+  background:linear-gradient(180deg,#fff1f8,#e8f8ff);
   text-align:center;
-  padding:10px;
+  padding:16px;
 }
+a{ text-decoration:none; color:#555; }
+h2{ margin:8px 0; }
 
-#top{
+.top{
   display:flex;
   justify-content:space-between;
-  font-weight:bold;
-  margin-bottom:8px;
+  max-width:360px;
+  margin:0 auto 10px;
+}
+.panel{
+  background:white;
+  padding:6px 12px;
+  border-radius:14px;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+  font-size:14px;
 }
 
-#grid{
+.grid{
   display:grid;
   gap:6px;
+  margin:14px auto;
   max-width:360px;
-  margin:10px auto;
 }
 
 .cell{
-  aspect-ratio:1;
+  width:42px;
+  height:42px;
   border-radius:12px;
+  cursor:pointer;
 }
 
-.red{background:#ff6b6b;}
-.blue{background:#4dabf7;}
-.yellow{background:#ffd43b;}
-.green{background:#69db7c;}
-.purple{background:#b197fc;}
+.red{background:#ff7675;}
+.blue{background:#74b9ff;}
+.yellow{background:#ffeaa7;}
+.green{background:#55efc4;}
+.purple{background:#a29bfe;}
 
 .rocket{
-  background:#fff;
-  border:3px solid #ff922b;
+  background:linear-gradient(135deg,#fd79a8,#e84393);
 }
-
 .bomb{
-  background:#000;
-  border-radius:50%;
+  background:radial-gradient(circle,#555,#000);
 }
 
 #msg{
-  font-size:20px;
-  margin:10px;
-}
-
-button{
-  padding:10px 18px;
-  border:none;
-  border-radius:20px;
-  background:#ff85a2;
-  color:white;
-  font-size:16px;
+  font-size:18px;
+  margin-top:10px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="top">
-  <div id="stage"></div>
-  <div id="moves"></div>
+<a href="index.html">← メインメニュー</a>
+<h2 id="stage"></h2>
+
+<div class="top">
+  <div class="panel" id="moves"></div>
+  <div class="panel" id="goal"></div>
 </div>
 
-<div id="goal"></div>
-
-<div id="grid"></div>
-
+<div id="grid" class="grid"></div>
 <div id="msg"></div>
 
-<button onclick="location.href='index.html'">🏠 メインメニュー</button>
-
 <script>
+/* ===== ステージ定義 ===== */
 const STAGES=[
  {rows:6,cols:6,colors:4,moves:15,goal:{red:10}},
  {rows:7,cols:7,colors:4,moves:18,goal:{blue:15}},
  {rows:8,cols:8,colors:5,moves:22,goal:{yellow:20}}
 ];
 
-let stage=0,board=[],ROWS,COLS,COLORS,movesLeft,goal;
+let stage=0, board=[], ROWS, COLS, COLORS, movesLeft, goal;
 
+/* ===== 初期化 ===== */
 function randColor(){
   return COLORS[Math.floor(Math.random()*COLORS.length)];
 }
@@ -109,12 +104,14 @@ function initStage(){
       board[r][c]={type:"color",value:randColor()};
     }
   }
+
   document.getElementById("stage").textContent=`Stage ${stage+1}`;
   document.getElementById("msg").textContent="";
   updateUI();
   draw();
 }
 
+/* ===== 描画 ===== */
 function updateUI(){
   document.getElementById("moves").textContent=`Moves: ${movesLeft}`;
   document.getElementById("goal").textContent=
@@ -135,17 +132,21 @@ function draw(){
   });
 }
 
+/* ===== タップ処理 ===== */
 function tap(r,c){
   if(movesLeft<=0) return;
   const cell=board[r][c];
   if(!cell) return;
 
+  // 特殊ブロック
   if(cell.type!=="color"){
-    activate(r,c,cell.type);
+    const combo=findCombo(r,c);
+    combo ? activateCombo(r,c,combo) : activate(r,c,cell.type);
     useMove();
     return;
   }
 
+  // 通常消し
   const group=[];
   flood(r,c,cell.value,group,{});
   if(group.length<2) return;
@@ -164,11 +165,11 @@ function tap(r,c){
     board[x][y]={type:special};
   }
 
-  collapse();
-  refill();
+  collapse(); refill();
   useMove();
 }
 
+/* ===== フラッドフィル ===== */
 function flood(r,c,color,group,seen){
   const k=r+","+c;
   if(seen[k]||r<0||c<0||r>=ROWS||c>=COLS) return;
@@ -182,16 +183,18 @@ function flood(r,c,color,group,seen){
   flood(r,c-1,color,group,seen);
 }
 
+/* ===== 特殊ブロック ===== */
 function activate(r,c,type){
   board[r][c]=null;
 
   if(type==="rocket"){
     for(let i=0;i<COLS;i++) board[r][i]=null;
+    for(let i=0;i<ROWS;i++) board[i][c]=null;
   }
 
   if(type==="bomb"){
-    for(let dr=-1;dr<=1;dr++)
-      for(let dc=-1;dc<=1;dc++){
+    for(let dr=-2;dr<=2;dr++)
+      for(let dc=-2;dc<=2;dc++){
         const nr=r+dr,nc=c+dc;
         if(nr>=0&&nc>=0&&nr<ROWS&&nc<COLS){
           board[nr][nc]=null;
@@ -199,10 +202,56 @@ function activate(r,c,type){
       }
   }
 
-  collapse();
-  refill();
+  collapse(); refill();
 }
 
+/* ===== 合体 ===== */
+function findCombo(r,c){
+  const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+  for(const [dr,dc] of dirs){
+    const nr=r+dr,nc=c+dc;
+    if(nr<0||nc<0||nr>=ROWS||nc>=COLS) continue;
+    const n=board[nr][nc];
+    if(n && n.type!=="color"){
+      return [board[r][c].type,n.type,nr,nc];
+    }
+  }
+  return null;
+}
+
+function activateCombo(r,c,combo){
+  const [a,b,nr,nc]=combo;
+  board[r][c]=null;
+  board[nr][nc]=null;
+
+  // 🚀＋🚀
+  if(a==="rocket" && b==="rocket"){
+    for(let i=0;i<ROWS;i++) board[i][c]=null;
+    for(let i=0;i<COLS;i++) board[r][i]=null;
+  }
+
+  // 💣＋💣
+  if(a==="bomb" && b==="bomb"){
+    for(let dr=-3;dr<=3;dr++)
+      for(let dc=-3;dc<=3;dc++){
+        const nr2=r+dr,nc2=c+dc;
+        if(nr2>=0&&nc2>=0&&nr2<ROWS&&nc2<COLS){
+          board[nr2][nc2]=null;
+        }
+      }
+  }
+
+  // 🚀＋💣
+  if((a==="rocket"&&b==="bomb")||(a==="bomb"&&b==="rocket")){
+    for(let i=0;i<ROWS;i++)
+      for(let j=0;j<COLS;j++)
+        if(i===r||j===c) board[i][j]=null;
+  }
+
+  collapse(); refill();
+}
+
+/* ===== 落下・補充 ===== */
 function collapse(){
   for(let c=0;c<COLS;c++){
     let stack=[];
@@ -212,16 +261,13 @@ function collapse(){
 }
 
 function refill(){
-  for(let r=0;r<ROWS;r++){
-    for(let c=0;c<COLS;c++){
-      if(!board[r][c]){
-        board[r][c]={type:"color",value:randColor()};
-      }
-    }
-  }
+  for(let r=0;r<ROWS;r++)
+    for(let c=0;c<COLS;c++)
+      if(!board[r][c]) board[r][c]={type:"color",value:randColor()};
   draw();
 }
 
+/* ===== 勝敗 ===== */
 function useMove(){
   movesLeft--;
   updateUI();
@@ -231,11 +277,9 @@ function useMove(){
 function checkClear(){
   if(Object.values(goal).every(v=>v<=0)){
     stage++;
-    if(stage<STAGES.length){
-      setTimeout(initStage,800);
-    }else{
-      document.getElementById("msg").textContent="🏆 ALL CLEAR!";
-    }
+    stage<STAGES.length
+      ? setTimeout(initStage,800)
+      : document.getElementById("msg").textContent="🏆 ALL CLEAR!";
   }else if(movesLeft<=0){
     document.getElementById("msg").textContent="💥 FAILED";
   }
