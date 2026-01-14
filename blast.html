@@ -2,63 +2,85 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Blast Puzzle</title>
+<title>Blast Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 body{
-  font-family:system-ui,sans-serif;
-  background:linear-gradient(180deg,#fff1f8,#e8f8ff);
+  font-family: system-ui, sans-serif;
+  background:
+    radial-gradient(circle at 20% 20%, #ffe4f0 0%, transparent 40%),
+    radial-gradient(circle at 80% 30%, #e0f7ff 0%, transparent 40%),
+    linear-gradient(180deg, #fff6fb, #f0fbff);
   text-align:center;
-  padding:16px;
+  padding:10px;
 }
-a{display:inline-block;margin-bottom:8px;}
-.top{
+
+#top{
   display:flex;
   justify-content:space-between;
-  max-width:320px;
-  margin:0 auto 10px;
+  font-weight:bold;
+  margin-bottom:8px;
 }
-.panel{
-  background:white;
-  padding:6px 10px;
-  border-radius:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,.2);
-  font-size:14px;
-}
-.grid{
+
+#grid{
   display:grid;
   gap:6px;
-  margin:0 auto;
+  max-width:360px;
+  margin:10px auto;
 }
+
 .cell{
-  width:40px;
-  height:40px;
-  border-radius:10px;
-  cursor:pointer;
+  aspect-ratio:1;
+  border-radius:12px;
 }
-.red{background:#ff7675;}
-.blue{background:#74b9ff;}
-.yellow{background:#ffeaa7;}
-.green{background:#55efc4;}
-.purple{background:#a29bfe;}
-.rocket{background:#fd79a8;}
-.bomb{background:#2d3436;}
-#msg{margin-top:10px;font-size:18px;}
+
+.red{background:#ff6b6b;}
+.blue{background:#4dabf7;}
+.yellow{background:#ffd43b;}
+.green{background:#69db7c;}
+.purple{background:#b197fc;}
+
+.rocket{
+  background:#fff;
+  border:3px solid #ff922b;
+}
+
+.bomb{
+  background:#000;
+  border-radius:50%;
+}
+
+#msg{
+  font-size:20px;
+  margin:10px;
+}
+
+button{
+  padding:10px 18px;
+  border:none;
+  border-radius:20px;
+  background:#ff85a2;
+  color:white;
+  font-size:16px;
+}
 </style>
 </head>
 
 <body>
 
-<a href="index.html">← メインメニュー</a>
-<h2 id="stage"></h2>
-
-<div class="top">
-  <div class="panel" id="moves"></div>
-  <div class="panel" id="goal"></div>
+<div id="top">
+  <div id="stage"></div>
+  <div id="moves"></div>
 </div>
 
-<div id="grid" class="grid"></div>
+<div id="goal"></div>
+
+<div id="grid"></div>
+
 <div id="msg"></div>
+
+<button onclick="location.href='index.html'">🏠 メインメニュー</button>
 
 <script>
 const STAGES=[
@@ -79,15 +101,14 @@ function initStage(){
   COLORS=["red","blue","yellow","green","purple"].slice(0,s.colors);
   movesLeft=s.moves;
   goal=JSON.parse(JSON.stringify(s.goal));
-  board=[];
 
+  board=[];
   for(let r=0;r<ROWS;r++){
     board[r]=[];
     for(let c=0;c<COLS;c++){
       board[r][c]={type:"color",value:randColor()};
     }
   }
-
   document.getElementById("stage").textContent=`Stage ${stage+1}`;
   document.getElementById("msg").textContent="";
   updateUI();
@@ -163,17 +184,21 @@ function flood(r,c,color,group,seen){
 
 function activate(r,c,type){
   board[r][c]=null;
+
   if(type==="rocket"){
     for(let i=0;i<COLS;i++) board[r][i]=null;
-    for(let i=0;i<ROWS;i++) board[i][c]=null;
   }
+
   if(type==="bomb"){
-    for(let dr=-2;dr<=2;dr++)
-      for(let dc=-2;dc<=2;dc++){
+    for(let dr=-1;dr<=1;dr++)
+      for(let dc=-1;dc<=1;dc++){
         const nr=r+dr,nc=c+dc;
-        if(nr>=0&&nc>=0&&nr<ROWS&&nc<COLS) board[nr][nc]=null;
+        if(nr>=0&&nc>=0&&nr<ROWS&&nc<COLS){
+          board[nr][nc]=null;
+        }
       }
   }
+
   collapse();
   refill();
 }
