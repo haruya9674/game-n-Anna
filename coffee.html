@@ -16,7 +16,8 @@ body{
     linear-gradient(180deg, #fffaf5, #eef7ff);
 }
 
-h1{ font-size:24px; }
+h1{ font-size:24px; margin-bottom:6px; }
+p{ margin:6px 0; }
 
 .cup{
   width:120px;
@@ -46,38 +47,60 @@ h1{ font-size:24px; }
   color:red;
 }
 
-button{
-  padding:10px 16px;
-  font-size:16px;
-  margin:6px;
+#pourBtn{
+  padding:14px 22px;
+  font-size:18px;
+  margin-top:10px;
+  border-radius:14px;
+  border:none;
+  background:#f2d6c3;
+  box-shadow:0 4px 10px rgba(0,0,0,.2);
+}
+
+#pourBtn:active{
+  transform:scale(0.95);
+  background:#e9c4aa;
 }
 
 #result{
   margin-top:12px;
   font-weight:bold;
-  min-height:24px;
+  min-height:26px;
 }
 .success{ color:green; }
 .fail{ color:red; }
+
+.back{
+  margin-top:14px;
+  display:inline-block;
+}
 </style>
 </head>
 
 <body>
 
 <h1>☕ コーヒー寸前チャレンジ</h1>
-<p>こぼれる寸前で止めよう！</p>
+<p>押してる間だけ注がれるよ<br>ギリギリで離そう！</p>
 
 <div class="cup">
   <div class="line">ここ！</div>
   <div id="coffee" class="coffee"></div>
 </div>
 
-<button onclick="startPour()">▶ 注ぐ</button>
-<button onclick="stopPour()">■ 止める</button>
+<button
+  id="pourBtn"
+  onmousedown="startPour()"
+  onmouseup="stopPour()"
+  onmouseleave="stopPour()"
+  ontouchstart="startPour()"
+  ontouchend="stopPour()"
+>
+☕ 押して注ぐ
+</button>
 
 <p id="result"></p>
 
-<p><a href="index.html">← もどる</a></p>
+<a href="index.html" class="back">← もどる</a>
 
 <script>
 let level = 0;
@@ -91,14 +114,17 @@ function startPour(){
   pouring = true;
 
   document.getElementById("coffee").style.height = "0%";
-  document.getElementById("result").textContent = "";
+  const result = document.getElementById("result");
+  result.textContent = "";
+  result.className = "";
 
   timer = setInterval(() => {
-    level += Math.random() * 1.5 + 0.5;
+    // 毎回スピードが微妙に変わる（運ゲー感）
+    level += Math.random() * 1.6 + 0.6;
 
     if(level >= 100){
       stopPour(true);
-    } else {
+    }else{
       document.getElementById("coffee").style.height = level + "%";
     }
   }, 50);
@@ -115,10 +141,10 @@ function stopPour(overflow = false){
   if(!overflow && level >= 90 && level <= 98){
     result.textContent = `🎉 成功！ ${level.toFixed(1)}%`;
     result.className = "success";
-  } else if(!overflow && level < 90){
+  }else if(!overflow && level < 90){
     result.textContent = `😅 少なすぎ！ ${level.toFixed(1)}%`;
     result.className = "fail";
-  } else {
+  }else{
     result.textContent = `💥 こぼれた！ ${level.toFixed(1)}%`;
     result.className = "fail";
   }
