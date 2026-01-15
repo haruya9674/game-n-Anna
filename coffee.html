@@ -53,7 +53,7 @@ p{ margin:6px 0; }
 
 .line{
   position:absolute;
-  top:13%;
+  top:0;
   width:100%;
   border-top:3px dashed red;
   font-size:12px;
@@ -80,7 +80,7 @@ button{
 <body>
 
 <h1>☕🍺 ギリギリ注ぎチャレンジ<br><small>Perfect Pour Challenge</small></h1>
-<p>線ピッタリで止めよう / Stop exactly on the line</p>
+<p>99%〜100%未満で成功 / Stop before overflow</p>
 
 <div class="mode">
   <button id="coffeeBtn" class="active" onclick="setMode('coffee')">☕ Coffee</button>
@@ -88,7 +88,7 @@ button{
 </div>
 
 <div class="cup">
-  <div class="line">TARGET / 92%</div>
+  <div class="line">100% LINE</div>
   <div id="liquid" class="liquid coffee"></div>
 </div>
 
@@ -114,36 +114,44 @@ let pouring = false;
 let finished = false;
 let mode = "coffee";
 
-// 成功ライン
-const target = 92;
-const tolerance = 1.5;
-
-// ==== Web Audio ====
+// ==== Audio (liquid sound) ====
 const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-let pourOsc;
+let noiseNode, gainNode;
 
-function pourSound(start){
-  if(start){
-    pourOsc = audioCtx.createOscillator();
-    pourOsc.type = "sawtooth";
-    pourOsc.frequency.value = 180;
-    pourOsc.connect(audioCtx.destination);
-    pourOsc.start();
-  }else if(pourOsc){
-    pourOsc.stop();
-    pourOsc = null;
+function startLiquidSound(){
+  const bufferSize = audioCtx.sampleRate;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<bufferSize;i++){
+    data[i] = (Math.random()*2-1)*0.15;
+  }
+
+  noiseNode = audioCtx.createBufferSource();
+  noiseNode.buffer = buffer;
+  noiseNode.loop = true;
+
+  gainNode = audioCtx.createGain();
+  gainNode.gain.value = (mode==="coffee") ? 0.25 : 0.35;
+
+  noiseNode.connect(gainNode).connect(audioCtx.destination);
+  noiseNode.start();
+}
+
+function stopLiquidSound(){
+  if(noiseNode){
+    noiseNode.stop();
+    noiseNode = null;
   }
 }
 
-function beep(freq){
+function playBeep(freq){
   const o = audioCtx.createOscillator();
   o.frequency.value = freq;
   o.connect(audioCtx.destination);
   o.start();
   o.stop(audioCtx.currentTime + 0.25);
 }
-
-// ====================
+// ==============================
 
 function setMode(m){
   if(pouring) return;
@@ -166,12 +174,12 @@ function resetGame(){
 function startPour(){
   if(pouring || finished) return;
   pouring = true;
-  pourSound(true);
+  startLiquidSound();
 
   timer = setInterval(()=>{
     let speed = (mode==="coffee")
-      ? Math.random()*1.2 + 0.8
-      : Math.random()*2.0 + 1.2;
+      ? Math.random()*1.1 + 0.9
+      : Math.random()*1.8 + 1.3;
 
     level += speed;
 
@@ -187,22 +195,21 @@ function stopPour(overflow=false){
   if(!pouring) return;
   clearInterval(timer);
   pouring = false;
-  pourSound(false);
+  stopLiquidSound();
   finished = true;
 
-  const diff = Math.abs(level - target);
   const r = document.getElementById("result");
 
-  if(!overflow && diff <= tolerance){
+  if(!overflow && level >= 99 && level < 100){
     r.textContent = `🎉 SUCCESS! / 成功 (${level.toFixed(1)}%)`;
     r.className = "success";
-    beep(880);
+    playBeep(880);
   }else{
     r.textContent = overflow
       ? `💥 OVERFLOW! / こぼれた (${level.toFixed(1)}%)`
       : `❌ FAIL / 失敗 (${level.toFixed(1)}%)`;
     r.className = "fail";
-    beep(220);
+    playBeep(220);
   }
 }
 </script>
