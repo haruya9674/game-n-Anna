@@ -28,9 +28,8 @@ h1{margin-bottom:6px;}
 .sub{font-size:14px;color:#666;margin-bottom:16px;}
 
 .question{
-  font-size:28px;
+  font-size:26px;
   margin:20px 0;
-  font-weight:bold;
 }
 
 .choices{
@@ -61,10 +60,27 @@ button{
 
 <body>
 
+<!-- ✅ 一番上：答え合わせ入口 -->
+<div style="margin-bottom:14px;">
+  <a href="kanji_list.html"
+     style="
+       display:inline-block;
+       padding:10px 18px;
+       background:white;
+       border-radius:14px;
+       text-decoration:none;
+       color:#333;
+       font-weight:bold;
+       box-shadow:0 3px 8px rgba(0,0,0,.2);
+     ">
+    📘 Answer & Study List
+  </a>
+</div>
+
 <a href="index.html" class="back">← Back to Menu</a>
 
 <h1>🈶 Kanji Karuta Quiz</h1>
-<div class="sub">English → Find the correct Kanji</div>
+<div class="sub">English → Find the correct Kanji word</div>
 
 <div class="question" id="question"></div>
 <div class="choices" id="choices"></div>
@@ -72,7 +88,6 @@ button{
 
 <script>
 const QUIZ = [
-  // Days
   {en:"Monday", kanji:"月曜日", yomi:"げつようび"},
   {en:"Tuesday", kanji:"火曜日", yomi:"かようび"},
   {en:"Wednesday", kanji:"水曜日", yomi:"すいようび"},
@@ -81,69 +96,65 @@ const QUIZ = [
   {en:"Saturday", kanji:"土曜日", yomi:"どようび"},
   {en:"Sunday", kanji:"日曜日", yomi:"にちようび"},
 
-  // Numbers
-  {en:"one", kanji:"一", yomi:"いち"},
-  {en:"two", kanji:"二", yomi:"に"},
-  {en:"three", kanji:"三", yomi:"さん"},
-  {en:"four", kanji:"四", yomi:"よん"},
-  {en:"five", kanji:"五", yomi:"ご"},
-  {en:"six", kanji:"六", yomi:"ろく"},
-  {en:"seven", kanji:"七", yomi:"なな"},
-  {en:"eight", kanji:"八", yomi:"はち"},
-  {en:"nine", kanji:"九", yomi:"きゅう"},
-  {en:"ten", kanji:"十", yomi:"じゅう"},
+  {en:"mountain", kanji:"山", yomi:"やま"},
+  {en:"river", kanji:"川", yomi:"かわ"},
+  {en:"forest", kanji:"森", yomi:"もり"},
+  {en:"tree", kanji:"木", yomi:"き"},
 
-  // Time / Daily
-  {en:"today", kanji:"今日", yomi:"きょう"},
-  {en:"tomorrow", kanji:"明日", yomi:"あした"},
-  {en:"yesterday", kanji:"昨日", yomi:"きのう"},
-  {en:"morning", kanji:"朝", yomi:"あさ"},
-  {en:"night", kanji:"夜", yomi:"よる"},
-  {en:"school", kanji:"学校", yomi:"がっこう"},
-  {en:"friend", kanji:"友達", yomi:"ともだち"},
-  {en:"water", kanji:"水", yomi:"みず"},
   {en:"fire", kanji:"火", yomi:"ひ"},
-  {en:"tree", kanji:"木", yomi:"き"}
+  {en:"water", kanji:"水", yomi:"みず"},
+  {en:"gold", kanji:"金", yomi:"きん"},
+  {en:"earth", kanji:"土", yomi:"つち"},
+
+  {en:"big", kanji:"大", yomi:"おお"},
+  {en:"small", kanji:"小", yomi:"ちい"},
+  {en:"up", kanji:"上", yomi:"うえ"},
+  {en:"down", kanji:"下", yomi:"した"},
+
+  {en:"person", kanji:"人", yomi:"ひと"},
+  {en:"child", kanji:"子", yomi:"こ"},
+  {en:"woman", kanji:"女", yomi:"おんな"},
+  {en:"man", kanji:"男", yomi:"おとこ"}
 ];
 
 let current = 0;
 
 function shuffle(a){
-  return a.sort(()=>Math.random()-0.5);
+  return [...a].sort(()=>Math.random()-0.5);
 }
 
 function showQuiz(){
   const q = QUIZ[current];
   document.getElementById("question").textContent = q.en;
 
-  document.getElementById("result").textContent="";
+  document.getElementById("result").textContent = "";
 
   const choices = shuffle([
     q.kanji,
     ...shuffle(QUIZ.filter(x=>x!==q).map(x=>x.kanji)).slice(0,2)
   ]);
 
-  const box=document.getElementById("choices");
-  box.innerHTML="";
+  const box = document.getElementById("choices");
+  box.innerHTML = "";
   choices.forEach(k=>{
-    const b=document.createElement("button");
-    b.textContent=k;
-    b.onclick=()=>check(k);
+    const b = document.createElement("button");
+    b.textContent = k;
+    b.onclick = ()=>check(k);
     box.appendChild(b);
   });
 }
 
 function check(k){
-  const q=QUIZ[current];
-  if(k===q.kanji){
+  const q = QUIZ[current];
+  if(k === q.kanji){
     document.getElementById("result").textContent =
       `⭕ Correct! ${q.kanji} (${q.yomi})`;
     setTimeout(()=>{
-      current = (current+1)%QUIZ.length;
+      current = (current + 1) % QUIZ.length;
       showQuiz();
     },1500);
   }else{
-    document.getElementById("result").textContent="❌ Try again";
+    document.getElementById("result").textContent = "❌ Try again";
   }
 }
 
