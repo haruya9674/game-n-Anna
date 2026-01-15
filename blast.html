@@ -2,144 +2,119 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Blast Puzzle</title>
+<title>Blast Puzzle Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
+  margin:0;
   font-family:system-ui,sans-serif;
-  background:linear-gradient(180deg,#fff1f8,#e8f8ff);
+  background:linear-gradient(#fff6fb,#f0fbff);
   text-align:center;
-  padding:16px;
-}
-
-a.back{
-  display:inline-block;
-  margin-bottom:10px;
-  padding:8px 14px;
-  background:white;
-  border-radius:12px;
-  text-decoration:none;
-  color:#333;
-  box-shadow:0 2px 6px rgba(0,0,0,.2);
 }
 
 .top{
   display:flex;
   justify-content:space-between;
-  max-width:360px;
-  margin:10px auto;
+  padding:10px 14px;
+  font-weight:bold;
 }
 
-.panel{
-  background:white;
-  padding:6px 10px;
-  border-radius:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,.2);
-  font-size:14px;
-}
-
-.grid{
+#grid{
   display:grid;
   gap:6px;
-  margin:10px auto;
+  padding:12px;
+  max-width:360px;
+  margin:auto;
 }
 
 .cell{
-  width:42px;
-  height:42px;
-  border-radius:10px;
+  width:100%;
+  aspect-ratio:1/1;
+  border-radius:14px;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:22px;
+  font-size:26px;
+  font-weight:bold;
+  color:white;
   cursor:pointer;
-  transition:opacity .6s, transform .3s;
+  transition:.25s;
 }
+
+.red{background:#ff6b6b}
+.blue{background:#4dabf7}
+.yellow{background:#ffd43b;color:#555}
+.green{background:#69db7c}
+.purple{background:#b197fc}
+
+.rocket{background:#adb5bd}
+.bomb{background:#868e96}
 
 .fade{
-  opacity:0;
-  transform:scale(0.6);
+  animation:fadeOut .6s forwards;
 }
 
-.red{background:#ff7675;}
-.blue{background:#74b9ff;}
-.yellow{background:#ffeaa7;}
-.green{background:#55efc4;}
-.purple{background:#a29bfe;}
-
-.rocket{
-  background:#fd79a8;
+@keyframes fadeOut{
+  to{opacity:0; transform:scale(1.3)}
 }
-.bomb{
-  background:#2d3436;
+
+#overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  display:none;
+  align-items:center;
+  justify-content:center;
   color:white;
-}
-
-#msg{
-  font-size:20px;
-  margin-top:10px;
+  font-size:32px;
+  font-weight:bold;
 }
 </style>
 </head>
 
 <body>
 
-<a href="index.html" class="back">← Back to Menu</a>
-<h2 id="stage"></h2>
-
 <div class="top">
-  <div class="panel" id="moves"></div>
-  <div class="panel" id="goal"></div>
+  <div id="stage">Stage 1</div>
+  <div id="moves">Moves: 0</div>
 </div>
 
-<div id="grid" class="grid"></div>
-<div id="msg"></div>
+<div id="goal"></div>
+<div id="grid"></div>
+
+<a href="index.html">⬅ Back to Menu</a>
+
+<div id="overlay">🎉 STAGE CLEAR! 🎉</div>
 
 <script>
-const COLORS_ALL=["red","blue","yellow","green","purple"];
-let stage=1;
+const STAGES=[...Array(100)].map((_,i)=>({
+  rows:6+Math.floor(i/10),
+  cols:6+Math.floor(i/10),
+  colors:Math.min(5,3+Math.floor(i/20)),
+  moves:15+i,
+  goal:{ red:5+i }
+}));
+
+let stage=parseInt(localStorage.getItem("blastStage")||0);
 let board=[],ROWS,COLS,COLORS,movesLeft,goal;
 
-function stageData(n){
-  const colorCount=Math.min(5,3+Math.floor((n-1)/20));
-  const size=6+Math.min(4,Math.floor((n-1)/10));
-  const goalObj={};
-
-  for(let i=0;i<colorCount;i++){
-    goalObj[COLORS_ALL[i]]=8+n;
-  }
-
-  return {
-    rows:size,
-    cols:size,
-    colors:colorCount,
-    moves:18+Math.floor(n/2),
-    goal:goalObj
-  };
-}
+const grid=document.getElementById("grid");
 
 function randColor(){
   return COLORS[Math.floor(Math.random()*COLORS.length)];
 }
 
 function initStage(){
-  const s=stageData(stage);
+  const s=STAGES[stage];
   ROWS=s.rows; COLS=s.cols;
-  COLORS=COLORS_ALL.slice(0,s.colors);
+  COLORS=["red","blue","yellow","green","purple"].slice(0,s.colors);
   movesLeft=s.moves;
-  goal=JSON.parse(JSON.stringify(s.goal));
+  goal={...s.goal};
 
-  board=[];
-  for(let r=0;r<ROWS;r++){
-    board[r]=[];
-    for(let c=0;c<COLS;c++){
-      board[r][c]={type:"color",value:randColor()};
-    }
-  }
+  board=[...Array(ROWS)].map(()=>[...Array(COLS)].map(()=>({type:"color",value:randColor()})));
 
-  document.getElementById("stage").textContent=`Stage ${stage}`;
-  document.getElementById("msg").textContent="";
+  document.getElementById("stage").textContent=`Stage ${stage+1}`;
   updateUI();
   draw();
 }
@@ -147,25 +122,19 @@ function initStage(){
 function updateUI(){
   document.getElementById("moves").textContent=`Moves: ${movesLeft}`;
   document.getElementById("goal").textContent=
-    "Goal: "+Object.entries(goal).map(([k,v])=>{
-      if(isNaN(v)) v=0;
-      return `${k}:${Math.max(0,v)}`;
-    }).join(" ");
+    "Goal: "+Object.entries(goal).map(([k,v])=>`${k}:${v}`).join(" ");
 }
 
 function draw(){
-  const g=document.getElementById("grid");
-  g.style.gridTemplateColumns=`repeat(${COLS},1fr)`;
-  g.innerHTML="";
-  board.forEach((row,r)=>{
-    row.forEach((cell,c)=>{
-      const d=document.createElement("div");
-      d.className="cell "+(cell.type==="color"?cell.value:cell.type);
-      d.textContent=cell.type==="rocket"?"🚀":cell.type==="bomb"?"💣":"";
-      d.onclick=()=>tap(r,c);
-      g.appendChild(d);
-    });
-  });
+  grid.style.gridTemplateColumns=`repeat(${COLS},1fr)`;
+  grid.innerHTML="";
+  board.forEach((row,r)=>row.forEach((cell,c)=>{
+    const d=document.createElement("div");
+    d.className="cell "+(cell.type==="color"?cell.value:cell.type);
+    d.textContent=cell.type==="rocket"?"🚀":cell.type==="bomb"?"💣":"";
+    d.onclick=()=>tap(r,c);
+    grid.appendChild(d);
+  }));
 }
 
 function tap(r,c){
@@ -174,7 +143,7 @@ function tap(r,c){
   if(!cell) return;
 
   if(cell.type!=="color"){
-    activate(r,c,cell.type);
+    explode([[r,c]]);
     useMove();
     return;
   }
@@ -187,18 +156,7 @@ function tap(r,c){
   if(group.length>=6) special="bomb";
   else if(group.length>=4) special="rocket";
 
-  group.forEach(([x,y])=>{
-    const col=board[x][y].value;
-    if(goal[col]!==undefined) goal[col]--;
-    board[x][y]=null;
-  });
-
-  if(special){
-    const [x,y]=group[0];
-    board[x][y]={type:special};
-  }
-
-  collapse(); refill();
+  explode(group,special);
   useMove();
 }
 
@@ -207,36 +165,30 @@ function flood(r,c,color,group,seen){
   if(seen[k]||r<0||c<0||r>=ROWS||c>=COLS) return;
   const cell=board[r][c];
   if(!cell||cell.type!=="color"||cell.value!==color) return;
-  seen[k]=1; group.push([r,c]);
+  seen[k]=1;
+  group.push([r,c]);
   flood(r+1,c,color,group,seen);
   flood(r-1,c,color,group,seen);
   flood(r,c+1,color,group,seen);
   flood(r,c-1,color,group,seen);
 }
 
-function activate(r,c,type){
-  const targets=[];
-  if(type==="rocket"){
-    for(let i=0;i<COLS;i++) targets.push([r,i]);
-    for(let i=0;i<ROWS;i++) targets.push([i,c]);
-  }
-  if(type==="bomb"){
-    for(let dr=-2;dr<=2;dr++)
-      for(let dc=-2;dc<=2;dc++){
-        const nr=r+dr,nc=c+dc;
-        if(nr>=0&&nc>=0&&nr<ROWS&&nc<COLS) targets.push([nr,nc]);
-      }
-  }
-
-  targets.forEach(([x,y])=>{
-    const cell=board[x][y];
-    if(cell && cell.type==="color" && goal[cell.value]!==undefined){
-      goal[cell.value]--;
-    }
-    board[x][y]=null;
+function explode(cells,special){
+  cells.forEach(([r,c],i)=>{
+    const idx=r*COLS+c;
+    grid.children[idx]?.classList.add("fade");
+    if(board[r][c]?.value && goal[board[r][c].value]>0) goal[board[r][c].value]--;
+    board[r][c]=null;
   });
 
-  collapse(); refill();
+  if(special){
+    const [r,c]=cells[0];
+    board[r][c]={type:special};
+  }
+
+  setTimeout(()=>{
+    collapse(); refill(); draw(); updateUI(); checkClear();
+  },600);
 }
 
 function collapse(){
@@ -248,37 +200,24 @@ function collapse(){
 }
 
 function refill(){
-  for(let r=0;r<ROWS;r++){
-    for(let c=0;c<COLS;c++){
-      if(!board[r][c]){
-        board[r][c]={type:"color",value:randColor()};
-      }
-    }
-  }
-  draw();
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
+    if(!board[r][c]) board[r][c]={type:"color",value:randColor()};
 }
 
-function useMove(){
-  movesLeft--;
-  updateUI();
-  checkClear();
-}
+function useMove(){ movesLeft--; updateUI(); }
 
 function checkClear(){
   if(Object.values(goal).every(v=>v<=0)){
-    stage++;
-    if(stage<=100){
-      setTimeout(initStage,800);
-    }else{
-      document.getElementById("msg").textContent="🏆 ALL STAGES CLEAR!";
-    }
-  }else if(movesLeft<=0){
-    document.getElementById("msg").textContent="💥 FAILED";
+    document.getElementById("overlay").style.display="flex";
+    setTimeout(()=>{
+      document.getElementById("overlay").style.display="none";
+      stage++; localStorage.setItem("blastStage",stage);
+      initStage();
+    },1200);
   }
 }
 
 initStage();
 </script>
-
 </body>
 </html>
