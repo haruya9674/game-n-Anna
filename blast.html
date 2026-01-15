@@ -24,8 +24,6 @@ a.back{
   box-shadow:0 2px 6px rgba(0,0,0,.2);
 }
 
-h2{margin:6px 0;}
-
 .top{
   display:flex;
   justify-content:space-between;
@@ -38,7 +36,6 @@ h2{margin:6px 0;}
   padding:6px 10px;
   border-radius:12px;
   box-shadow:0 2px 6px rgba(0,0,0,.2);
-  font-size:14px;
 }
 
 .grid{
@@ -67,11 +64,18 @@ h2{margin:6px 0;}
 .rocket{background:#fd79a8;color:white;}
 .bomb{background:#2d3436;color:white;}
 
-.fade{
-  animation:fade .6s forwards;
-}
+.fade{animation:fade .6s forwards;}
 @keyframes fade{
   to{opacity:0;transform:scale(1.4);}
+}
+
+.boom{
+  animation:boom .25s ease-out;
+}
+@keyframes boom{
+  0%{transform:scale(1);}
+  50%{transform:scale(1.5);}
+  100%{transform:scale(1);}
 }
 
 #overlay{
@@ -90,7 +94,6 @@ h2{margin:6px 0;}
 <body>
 
 <a href="index.html" class="back">← Back to Menu</a>
-<h2 id="stage"></h2>
 
 <div class="top">
   <div class="panel" id="moves"></div>
@@ -102,113 +105,126 @@ h2{margin:6px 0;}
 
 <script>
 const COLORS=["red","blue","yellow","green","purple"];
-const MAX_STAGE=100;
 const FADE_TIME=600;
-
-let stage=Number(localStorage.getItem("blastStage")||1);
-let ROWS,COLS,movesLeft,goal,board=[];
-
-function stageData(s){
-  return{
-    rows:6,
-    cols:6,
-    moves:20,
-    goals:{ [COLORS[s%COLORS.length]]:12 }
-  };
-}
+let ROWS=6,COLS=6,movesLeft=20;
+let goal={red:12};
+let board=[];
 
 function randColor(){
   return COLORS[Math.floor(Math.random()*COLORS.length)];
 }
 
 function init(){
-  const d=stageData(stage);
-  ROWS=d.rows; COLS=d.cols;
-  movesLeft=d.moves;
-  goal=JSON.parse(JSON.stringify(d.goals));
   board=[];
-
   for(let r=0;r<ROWS;r++){
     board[r]=[];
     for(let c=0;c<COLS;c++){
       board[r][c]={type:"color",value:randColor()};
     }
   }
-
-  document.getElementById("stage").textContent=`Stage ${stage}`;
-  updateUI();
-  draw();
+  updateUI(); draw();
 }
 
 function updateUI(){
-  document.getElementById("moves").textContent=`Moves: ${movesLeft}`;
-  document.getElementById("goal").textContent=
+  moves.textContent=`Moves: ${movesLeft}`;
+  goalBox.textContent=
     "Goal: "+Object.entries(goal).map(([k,v])=>`${k}:${Math.max(0,v)}`).join(" ");
 }
+
+const moves=document.getElementById("moves");
+const goalBox=document.getElementById("goal");
 
 function draw(){
   const g=document.getElementById("grid");
   g.style.gridTemplateColumns=`repeat(${COLS},1fr)`;
   g.innerHTML="";
-
-  for(let r=0;r<ROWS;r++){
-    for(let c=0;c<COLS;c++){
-      const cell=board[r][c];
-      const d=document.createElement("div");
-      d.className="cell";
-
-      if(cell){
-        d.classList.add(cell.type==="color"?cell.value:cell.type);
-        if(cell.fade) d.classList.add("fade");
-        d.textContent=cell.type==="rocket"?"🚀":cell.type==="bomb"?"💣":"";
-        d.onclick=()=>tap(r,c);
-      }
-
-      g.appendChild(d);
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const cell=board[r][c];
+    const d=document.createElement("div");
+    d.className="cell";
+    if(cell){
+      d.classList.add(cell.type==="color"?cell.value:cell.type);
+      if(cell.fade) d.classList.add("fade");
+      if(cell.boom) d.classList.add("boom");
+      d.textContent=cell.type==="rocket"?"🚀":cell.type==="bomb"?"💣":"";
+      d.onclick=()=>tap(r,c);
     }
+    g.appendChild(d);
   }
 }
 
 function tap(r,c){
   if(movesLeft<=0||!board[r][c]) return;
   const cell=board[r][c];
+  let targets=[];
+  let bomb=0, rocket=0;
 
-  let targets=[[r,c]];
+  // 周囲の合体チェック
+  [[0,0],[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{
+    const nr=r+dr,nc=c+dc;
+    if(board[nr]?.[nc]?.type==="bomb") bomb++;
+    if(board[nr]?.[nc]?.type==="rocket") rocket++;
+  });
 
-  if(cell.type==="rocket"){
+  // 💣×💣
+  if(bomb>=2){
+    for(let dr=-3;dr<=3;dr++)
+      for(let dc=-3;dc<=3;dc++)
+        if(board[r+dr]?.[c+dc]) targets.push([r+dr,c+dc]);
+  }
+  // 🚀×🚀 or 💣×🚀
+  else if(rocket>=2|| (rocket&&bomb)){
+    for(let d=-1;d<=1;d++){
+      for(let i=0;i<COLS;i++) if(board[r+d]?.[i]) targets.push([r+d,i]);
+      for(let i=0;i<ROWS;i++) if(board[i]?.[c+d]) targets.push([i,c+d]);
+    }
+  }
+  // 単体
+  else if(cell.type==="rocket"){
     for(let i=0;i<COLS;i++) targets.push([r,i]);
     for(let i=0;i<ROWS;i++) targets.push([i,c]);
   }
-
-  if(cell.type==="bomb"){
+  else if(cell.type==="bomb"){
     for(let dr=-2;dr<=2;dr++)
-      for(let dc=-2;dc<=2;dc++){
-        const nr=r+dr,nc=c+dc;
-        if(nr>=0&&nc>=0&&nr<ROWS&&nc<COLS)
-          targets.push([nr,nc]);
-      }
+      for(let dc=-2;dc<=2;dc++)
+        if(board[r+dr]?.[c+dc]) targets.push([r+dr,c+dc]);
+  }
+  else{
+    targets.push([r,c]);
   }
 
-  targets.forEach(([x,y])=>{
-    if(board[x][y]) board[x][y].fade=true;
+  // 重複削除
+  const used={};
+  targets=targets.filter(([x,y])=>{
+    const k=x+","+y;
+    if(used[k]) return false;
+    used[k]=1; return true;
   });
 
+  // ドン！演出
+  targets.forEach(([x,y])=>{
+    board[x][y].boom=true;
+    board[x][y].fade=true;
+  });
   draw();
 
   setTimeout(()=>{
-    targets.forEach(([x,y])=>board[x][y]=null);
-    collapse();
-    refill();
+    targets.forEach(([x,y])=>{
+      if(board[x][y]?.type==="color" && goal[board[x][y].value]>0)
+        goal[board[x][y].value]--;
+      board[x][y]=null;
+    });
+    collapse(); refill();
   },FADE_TIME);
 
-  endMove();
+  movesLeft--; updateUI();
 }
 
 function collapse(){
   for(let c=0;c<COLS;c++){
-    let stack=[];
-    for(let r=ROWS-1;r>=0;r--) if(board[r][c]) stack.push(board[r][c]);
-    for(let r=ROWS-1;r>=0;r--) board[r][c]=stack.shift()||null;
+    let s=[];
+    for(let r=ROWS-1;r>=0;r--) if(board[r][c]) s.push(board[r][c]);
+    for(let r=ROWS-1;r>=0;r--) board[r][c]=s.shift()||null;
   }
 }
 
@@ -217,21 +233,6 @@ function refill(){
     for(let c=0;c<COLS;c++)
       if(!board[r][c]) board[r][c]={type:"color",value:randColor()};
   draw();
-}
-
-function endMove(){
-  movesLeft--;
-  updateUI();
-
-  if(Object.values(goal).every(v=>v<=0)){
-    document.getElementById("overlay").style.display="flex";
-    setTimeout(()=>{
-      document.getElementById("overlay").style.display="none";
-      stage++;
-      localStorage.setItem("blastStage",stage);
-      init();
-    },1000);
-  }
 }
 
 init();
