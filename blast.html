@@ -74,13 +74,6 @@ h2{margin:6px 0;}
   to{opacity:0;transform:scale(1.4);}
 }
 
-.boom{
-  animation:boom .25s;
-}
-@keyframes boom{
-  50%{transform:scale(1.4);}
-}
-
 #overlay{
   position:fixed;
   inset:0;
@@ -117,9 +110,10 @@ let stage=Number(localStorage.getItem("blastStage")||1);
 let movesLeft,goal,board=[];
 
 function stageData(){
+  const color = COLORS[stage % COLORS.length];
   return{
     moves:18+stage,
-    goals:{ [COLORS[stage%COLORS.length]]:12+stage }
+    goals:{ [color]:12+stage }
   };
 }
 
@@ -147,8 +141,10 @@ function init(){
 
 function updateUI(){
   document.getElementById("moves").textContent=`Moves: ${movesLeft}`;
-  document.getElementById("goal").textContent=
-    "Goal: "+Object.entries(goal).map(([k,v])=>`${k}:${Math.max(0,v)}`).join(" ");
+  document.getElementById("goal").textContent =
+    "Goal: " + Object.entries(goal)
+      .map(([k,v]) => `${k}:${Math.max(0, Number(v)||0)}`)
+      .join(" ");
 }
 
 function draw(){
@@ -186,7 +182,10 @@ function tap(r,c){
     else if(group.length>=4) special="rocket";
 
     group.forEach(([x,y])=>{
-      if(goal[board[x][y].value]>0) goal[board[x][y].value]--;
+      const v = board[x][y].value;
+      if(goal[v] !== undefined && goal[v] > 0){
+        goal[v]--;
+      }
       board[x][y].fade=true;
     });
 
