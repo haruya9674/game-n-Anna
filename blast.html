@@ -2,72 +2,86 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Blast Puzzle Game</title>
+<title>Blast Puzzle</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
-  margin:0;
   font-family:system-ui,sans-serif;
-  background:linear-gradient(#fff6fb,#f0fbff);
+  background:linear-gradient(180deg,#fff1f8,#e8f8ff);
   text-align:center;
+  padding:12px;
 }
+
+a.back{
+  display:inline-block;
+  margin-bottom:6px;
+  padding:6px 12px;
+  background:white;
+  border-radius:12px;
+  text-decoration:none;
+  color:#333;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+
+h2{margin:6px 0;}
 
 .top{
   display:flex;
   justify-content:space-between;
-  padding:10px 14px;
-  font-weight:bold;
+  max-width:320px;
+  margin:6px auto;
 }
 
-#grid{
+.panel{
+  background:white;
+  padding:6px 10px;
+  border-radius:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+  font-size:14px;
+}
+
+.grid{
   display:grid;
   gap:6px;
-  padding:12px;
-  max-width:360px;
-  margin:auto;
+  margin:10px auto;
 }
 
 .cell{
-  width:100%;
-  aspect-ratio:1/1;
-  border-radius:14px;
+  width:40px;
+  height:40px;
+  border-radius:10px;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:26px;
-  font-weight:bold;
-  color:white;
+  font-size:22px;
   cursor:pointer;
-  transition:.25s;
 }
 
-.red{background:#ff6b6b}
-.blue{background:#4dabf7}
-.yellow{background:#ffd43b;color:#555}
-.green{background:#69db7c}
-.purple{background:#b197fc}
+.red{background:#ff7675;}
+.blue{background:#74b9ff;}
+.yellow{background:#ffeaa7;}
+.green{background:#55efc4;}
+.purple{background:#a29bfe;}
 
-.rocket{background:#adb5bd}
-.bomb{background:#868e96}
+.rocket{background:#fd79a8;color:white;}
+.bomb{background:#2d3436;color:white;}
 
 .fade{
-  animation:fadeOut .6s forwards;
+  animation:fade .6s forwards;
 }
-
-@keyframes fadeOut{
-  to{opacity:0; transform:scale(1.3)}
+@keyframes fade{
+  to{opacity:0;transform:scale(1.4);}
 }
 
 #overlay{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.4);
+  background:rgba(255,255,255,.9);
   display:none;
   align-items:center;
   justify-content:center;
-  color:white;
-  font-size:32px;
+  font-size:36px;
   font-weight:bold;
 }
 </style>
@@ -75,76 +89,85 @@ body{
 
 <body>
 
+<a href="index.html" class="back">← Back to Menu</a>
+<h2 id="stage"></h2>
+
 <div class="top">
-  <div id="stage">Stage 1</div>
-  <div id="moves">Moves: 0</div>
+  <div class="panel" id="moves"></div>
+  <div class="panel" id="goal"></div>
 </div>
 
-<div id="goal"></div>
-<div id="grid"></div>
-
-<a href="index.html">⬅ Back to Menu</a>
-
-<div id="overlay">🎉 STAGE CLEAR! 🎉</div>
+<div id="grid" class="grid"></div>
+<div id="overlay">🎉 CLEAR!</div>
 
 <script>
-const STAGES=[...Array(100)].map((_,i)=>({
-  rows:6+Math.floor(i/10),
-  cols:6+Math.floor(i/10),
-  colors:Math.min(5,3+Math.floor(i/20)),
-  moves:15+i,
-  goal:{ red:5+i }
-}));
+const COLORS=["red","blue","yellow","green","purple"];
+const MAX_STAGE=100;
 
-let stage=parseInt(localStorage.getItem("blastStage")||0);
-let board=[],ROWS,COLS,COLORS,movesLeft,goal;
+let stage=Number(localStorage.getItem("blastStage")||1);
+let ROWS,COLS,movesLeft,goal,board=[];
 
-const grid=document.getElementById("grid");
+function stageData(s){
+  return{
+    rows:6+Math.min(4,Math.floor(s/10)),
+    cols:6+Math.min(4,Math.floor(s/10)),
+    moves:18+Math.floor(s/3),
+    goals:{
+      [COLORS[s%COLORS.length]]:10+Math.floor(s*1.5)
+    }
+  };
+}
 
 function randColor(){
   return COLORS[Math.floor(Math.random()*COLORS.length)];
 }
 
-function initStage(){
-  const s=STAGES[stage];
-  ROWS=s.rows; COLS=s.cols;
-  COLORS=["red","blue","yellow","green","purple"].slice(0,s.colors);
-  movesLeft=s.moves;
-  goal={...s.goal};
+function init(){
+  const d=stageData(stage);
+  ROWS=d.rows; COLS=d.cols;
+  movesLeft=d.moves;
+  goal=JSON.parse(JSON.stringify(d.goals));
 
-  board=[...Array(ROWS)].map(()=>[...Array(COLS)].map(()=>({type:"color",value:randColor()})));
-
-  document.getElementById("stage").textContent=`Stage ${stage+1}`;
-  updateUI();
-  draw();
+  board=[];
+  for(let r=0;r<ROWS;r++){
+    board[r]=[];
+    for(let c=0;c<COLS;c++){
+      board[r][c]={type:"color",value:randColor()};
+    }
+  }
+  document.getElementById("stage").textContent=`Stage ${stage}`;
+  draw(); updateUI();
 }
 
 function updateUI(){
   document.getElementById("moves").textContent=`Moves: ${movesLeft}`;
   document.getElementById("goal").textContent=
-    "Goal: "+Object.entries(goal).map(([k,v])=>`${k}:${v}`).join(" ");
+    "Goal: "+Object.entries(goal).map(([k,v])=>`${k}:${Math.max(0,v)}`).join(" ");
 }
 
 function draw(){
-  grid.style.gridTemplateColumns=`repeat(${COLS},1fr)`;
-  grid.innerHTML="";
+  const g=document.getElementById("grid");
+  g.style.gridTemplateColumns=`repeat(${COLS},1fr)`;
+  g.innerHTML="";
   board.forEach((row,r)=>row.forEach((cell,c)=>{
     const d=document.createElement("div");
-    d.className="cell "+(cell.type==="color"?cell.value:cell.type);
+    if(!cell){d.className="cell"; g.appendChild(d); return;}
+    let cls="cell "+(cell.type==="color"?cell.value:cell.type);
+    if(cell.fade) cls+=" fade";
+    d.className=cls;
     d.textContent=cell.type==="rocket"?"🚀":cell.type==="bomb"?"💣":"";
     d.onclick=()=>tap(r,c);
-    grid.appendChild(d);
+    g.appendChild(d);
   }));
 }
 
 function tap(r,c){
-  if(movesLeft<=0) return;
+  if(movesLeft<=0||!board[r][c]) return;
   const cell=board[r][c];
-  if(!cell) return;
 
   if(cell.type!=="color"){
-    explode([[r,c]]);
-    useMove();
+    activate(r,c,cell.type,{[cell.type]:1});
+    endMove();
     return;
   }
 
@@ -156,68 +179,91 @@ function tap(r,c){
   if(group.length>=6) special="bomb";
   else if(group.length>=4) special="rocket";
 
-  explode(group,special);
-  useMove();
-}
-
-function flood(r,c,color,group,seen){
-  const k=r+","+c;
-  if(seen[k]||r<0||c<0||r>=ROWS||c>=COLS) return;
-  const cell=board[r][c];
-  if(!cell||cell.type!=="color"||cell.value!==color) return;
-  seen[k]=1;
-  group.push([r,c]);
-  flood(r+1,c,color,group,seen);
-  flood(r-1,c,color,group,seen);
-  flood(r,c+1,color,group,seen);
-  flood(r,c-1,color,group,seen);
-}
-
-function explode(cells,special){
-  cells.forEach(([r,c],i)=>{
-    const idx=r*COLS+c;
-    grid.children[idx]?.classList.add("fade");
-    if(board[r][c]?.value && goal[board[r][c].value]>0) goal[board[r][c].value]--;
-    board[r][c]=null;
+  group.forEach(([x,y])=>{
+    if(goal[board[x][y].value]>0) goal[board[x][y].value]--;
+    board[x][y]={fade:true};
+    board[x][y]=null;
   });
 
   if(special){
-    const [r,c]=cells[0];
-    board[r][c]={type:special};
+    const [x,y]=group[0];
+    board[x][y]={type:special};
   }
 
-  setTimeout(()=>{
-    collapse(); refill(); draw(); updateUI(); checkClear();
-  },600);
+  collapse(); refill(); endMove();
+}
+
+function flood(r,c,color,g,s){
+  const k=r+","+c;
+  if(s[k]||r<0||c<0||r>=ROWS||c>=COLS) return;
+  const cell=board[r][c];
+  if(!cell||cell.type!=="color"||cell.value!==color) return;
+  s[k]=1; g.push([r,c]);
+  flood(r+1,c,color,g,s);
+  flood(r-1,c,color,g,s);
+  flood(r,c+1,color,g,s);
+  flood(r,c-1,color,g,s);
+}
+
+function activate(r,c,type,combo){
+  board[r][c]={fade:true}; board[r][c]=null;
+
+  const bomb=combo.bomb||0, rocket=combo.rocket||0;
+
+  if(rocket>=2|| (rocket&&bomb)){
+    for(let d=-1;d<=1;d++){
+      if(r+d>=0&&r+d<ROWS)
+        for(let i=0;i<COLS;i++) board[r+d][i]=null;
+      if(c+d>=0&&c+d<COLS)
+        for(let i=0;i<ROWS;i++) board[i][c+d]=null;
+    }
+  }else if(type==="rocket"){
+    for(let i=0;i<COLS;i++) board[r][i]=null;
+    for(let i=0;i<ROWS;i++) board[i][c]=null;
+  }
+
+  if(type==="bomb"){
+    const range=bomb>=2?3:2;
+    for(let dr=-range;dr<=range;dr++)
+      for(let dc=-range;dc<=range;dc++){
+        const nr=r+dr,nc=c+dc;
+        if(nr>=0&&nc>=0&&nr<ROWS&&nc<COLS) board[nr][nc]=null;
+      }
+  }
+
+  collapse(); refill();
 }
 
 function collapse(){
   for(let c=0;c<COLS;c++){
-    let stack=[];
-    for(let r=ROWS-1;r>=0;r--) if(board[r][c]) stack.push(board[r][c]);
-    for(let r=ROWS-1;r>=0;r--) board[r][c]=stack.shift()||null;
+    let s=[];
+    for(let r=ROWS-1;r>=0;r--) if(board[r][c]) s.push(board[r][c]);
+    for(let r=ROWS-1;r>=0;r--) board[r][c]=s.shift()||null;
   }
 }
 
 function refill(){
-  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
-    if(!board[r][c]) board[r][c]={type:"color",value:randColor()};
+  for(let r=0;r<ROWS;r++)
+    for(let c=0;c<COLS;c++)
+      if(!board[r][c]) board[r][c]={type:"color",value:randColor()};
+  draw();
 }
 
-function useMove(){ movesLeft--; updateUI(); }
-
-function checkClear(){
+function endMove(){
+  movesLeft--; updateUI();
   if(Object.values(goal).every(v=>v<=0)){
     document.getElementById("overlay").style.display="flex";
     setTimeout(()=>{
       document.getElementById("overlay").style.display="none";
-      stage++; localStorage.setItem("blastStage",stage);
-      initStage();
-    },1200);
+      stage=Math.min(stage+1,MAX_STAGE);
+      localStorage.setItem("blastStage",stage);
+      init();
+    },1000);
   }
 }
 
-initStage();
+init();
 </script>
+
 </body>
 </html>
