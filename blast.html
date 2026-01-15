@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Blast Puzzle</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 body{
   font-family:system-ui,sans-serif;
@@ -12,7 +11,6 @@ body{
   text-align:center;
   padding:12px;
 }
-
 a.back{
   display:inline-block;
   margin-bottom:6px;
@@ -23,27 +21,25 @@ a.back{
   color:#333;
   box-shadow:0 2px 6px rgba(0,0,0,.2);
 }
-
+h2{margin:6px 0;}
 .top{
   display:flex;
   justify-content:space-between;
   max-width:320px;
   margin:6px auto;
 }
-
 .panel{
   background:white;
   padding:6px 10px;
   border-radius:12px;
   box-shadow:0 2px 6px rgba(0,0,0,.2);
+  font-size:14px;
 }
-
 .grid{
   display:grid;
   gap:6px;
   margin:10px auto;
 }
-
 .cell{
   width:40px;
   height:40px;
@@ -53,31 +49,27 @@ a.back{
   justify-content:center;
   font-size:22px;
   cursor:pointer;
+  transition:transform .2s;
 }
-
 .red{background:#ff7675;}
 .blue{background:#74b9ff;}
 .yellow{background:#ffeaa7;}
 .green{background:#55efc4;}
 .purple{background:#a29bfe;}
-
 .rocket{background:#fd79a8;color:white;}
 .bomb{background:#2d3436;color:white;}
-
-.fade{animation:fade .6s forwards;}
+.fade{
+  animation:fade .6s forwards;
+}
 @keyframes fade{
   to{opacity:0;transform:scale(1.4);}
 }
-
 .boom{
-  animation:boom .25s ease-out;
+  animation:boom .25s;
 }
 @keyframes boom{
-  0%{transform:scale(1);}
-  50%{transform:scale(1.5);}
-  100%{transform:scale(1);}
+  50%{transform:scale(1.6);}
 }
-
 #overlay{
   position:fixed;
   inset:0;
@@ -92,8 +84,8 @@ a.back{
 </head>
 
 <body>
-
 <a href="index.html" class="back">← Back to Menu</a>
+<h2 id="stage"></h2>
 
 <div class="top">
   <div class="panel" id="moves"></div>
@@ -106,125 +98,129 @@ a.back{
 <script>
 const COLORS=["red","blue","yellow","green","purple"];
 const FADE_TIME=600;
-let ROWS=6,COLS=6,movesLeft=20;
-let goal={red:12};
-let board=[];
+
+let stage=1,ROWS=6,COLS=6,movesLeft=20,goal={},board=[];
+
+function stageData(){
+  return{rows:6,cols:6,moves:20,goals:{red:12}};
+}
 
 function randColor(){
   return COLORS[Math.floor(Math.random()*COLORS.length)];
 }
 
 function init(){
+  const d=stageData();
+  ROWS=d.rows; COLS=d.cols;
+  movesLeft=d.moves;
+  goal=JSON.parse(JSON.stringify(d.goals));
   board=[];
   for(let r=0;r<ROWS;r++){
     board[r]=[];
-    for(let c=0;c<COLS;c++){
+    for(let c=0;c<COLS;c++)
       board[r][c]={type:"color",value:randColor()};
-    }
   }
-  updateUI(); draw();
+  document.getElementById("stage").textContent=`Stage ${stage}`;
+  updateUI();
+  draw();
 }
 
 function updateUI(){
-  moves.textContent=`Moves: ${movesLeft}`;
-  goalBox.textContent=
+  document.getElementById("moves").textContent=`Moves: ${movesLeft}`;
+  document.getElementById("goal").textContent=
     "Goal: "+Object.entries(goal).map(([k,v])=>`${k}:${Math.max(0,v)}`).join(" ");
 }
-
-const moves=document.getElementById("moves");
-const goalBox=document.getElementById("goal");
 
 function draw(){
   const g=document.getElementById("grid");
   g.style.gridTemplateColumns=`repeat(${COLS},1fr)`;
   g.innerHTML="";
-  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-    const cell=board[r][c];
-    const d=document.createElement("div");
-    d.className="cell";
-    if(cell){
-      d.classList.add(cell.type==="color"?cell.value:cell.type);
-      if(cell.fade) d.classList.add("fade");
-      if(cell.boom) d.classList.add("boom");
-      d.textContent=cell.type==="rocket"?"🚀":cell.type==="bomb"?"💣":"";
-      d.onclick=()=>tap(r,c);
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const cell=board[r][c];
+      const d=document.createElement("div");
+      d.className="cell";
+      if(cell){
+        d.classList.add(cell.type==="color"?cell.value:cell.type);
+        if(cell.fade) d.classList.add("fade");
+        if(cell.boom) d.classList.add("boom");
+        d.textContent=cell.type==="rocket"?"🚀":cell.type==="bomb"?"💣":"";
+        d.onclick=()=>tap(r,c);
+      }
+      g.appendChild(d);
     }
-    g.appendChild(d);
   }
+}
+
+function getCluster(r,c,color,visited={}){
+  const key=r+","+c;
+  if(visited[key]) return [];
+  visited[key]=true;
+  let res=[[r,c]];
+  [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{
+    const nr=r+dr,nc=c+dc;
+    if(nr>=0&&nc>=0&&nr<ROWS&&nc<COLS){
+      const n=board[nr][nc];
+      if(n&&n.type==="color"&&n.value===color)
+        res=res.concat(getCluster(nr,nc,color,visited));
+    }
+  });
+  return res;
 }
 
 function tap(r,c){
   if(movesLeft<=0||!board[r][c]) return;
   const cell=board[r][c];
   let targets=[];
-  let bomb=0, rocket=0;
 
-  // 周囲の合体チェック
-  [[0,0],[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{
-    const nr=r+dr,nc=c+dc;
-    if(board[nr]?.[nc]?.type==="bomb") bomb++;
-    if(board[nr]?.[nc]?.type==="rocket") rocket++;
-  });
-
-  // 💣×💣
-  if(bomb>=2){
-    for(let dr=-3;dr<=3;dr++)
-      for(let dc=-3;dc<=3;dc++)
-        if(board[r+dr]?.[c+dc]) targets.push([r+dr,c+dc]);
-  }
-  // 🚀×🚀 or 💣×🚀
-  else if(rocket>=2|| (rocket&&bomb)){
-    for(let d=-1;d<=1;d++){
-      for(let i=0;i<COLS;i++) if(board[r+d]?.[i]) targets.push([r+d,i]);
-      for(let i=0;i<ROWS;i++) if(board[i]?.[c+d]) targets.push([i,c+d]);
+  if(cell.type==="color"){
+    const cluster=getCluster(r,c,cell.value);
+    if(cluster.length<2) return;
+    targets=cluster;
+    if(cluster.length>=6) board[r][c]={type:"bomb",boom:true};
+    else if(cluster.length>=4) board[r][c]={type:"rocket",boom:true};
+    targets=targets.filter(p=>!(p[0]===r&&p[1]===c));
+  }else{
+    targets=[[r,c]];
+    if(cell.type==="rocket"){
+      for(let i=0;i<COLS;i++) targets.push([r,i]);
+      for(let i=0;i<ROWS;i++) targets.push([i,c]);
+    }
+    if(cell.type==="bomb"){
+      for(let dr=-2;dr<=2;dr++)
+        for(let dc=-2;dc<=2;dc++){
+          const nr=r+dr,nc=c+dc;
+          if(nr>=0&&nc>=0&&nr<ROWS&&nc<COLS)
+            targets.push([nr,nc]);
+        }
     }
   }
-  // 単体
-  else if(cell.type==="rocket"){
-    for(let i=0;i<COLS;i++) targets.push([r,i]);
-    for(let i=0;i<ROWS;i++) targets.push([i,c]);
-  }
-  else if(cell.type==="bomb"){
-    for(let dr=-2;dr<=2;dr++)
-      for(let dc=-2;dc<=2;dc++)
-        if(board[r+dr]?.[c+dc]) targets.push([r+dr,c+dc]);
-  }
-  else{
-    targets.push([r,c]);
-  }
 
-  // 重複削除
-  const used={};
-  targets=targets.filter(([x,y])=>{
-    const k=x+","+y;
-    if(used[k]) return false;
-    used[k]=1; return true;
-  });
-
-  // ドン！演出
   targets.forEach(([x,y])=>{
-    board[x][y].boom=true;
-    board[x][y].fade=true;
+    if(board[x][y]){
+      if(board[x][y].type==="color")
+        goal[board[x][y].value]--;
+      board[x][y].fade=true;
+    }
   });
+
   draw();
 
   setTimeout(()=>{
-    targets.forEach(([x,y])=>{
-      if(board[x][y]?.type==="color" && goal[board[x][y].value]>0)
-        goal[board[x][y].value]--;
-      board[x][y]=null;
-    });
-    collapse(); refill();
+    targets.forEach(([x,y])=>board[x][y]=null);
+    collapse();
+    refill();
   },FADE_TIME);
 
-  movesLeft--; updateUI();
+  movesLeft--;
+  updateUI();
 }
 
 function collapse(){
   for(let c=0;c<COLS;c++){
-    let s=[];
-    for(let r=ROWS-1;r>=0;r--) if(board[r][c]) s.push(board[r][c]);
-    for(let r=ROWS-1;r>=0;r--) board[r][c]=s.shift()||null;
+    let stack=[];
+    for(let r=ROWS-1;r>=0;r--) if(board[r][c]) stack.push(board[r][c]);
+    for(let r=ROWS-1;r>=0;r--) board[r][c]=stack.shift()||null;
   }
 }
 
@@ -237,6 +233,5 @@ function refill(){
 
 init();
 </script>
-
 </body>
 </html>
