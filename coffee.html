@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>☕ コーヒー寸前チャレンジ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  font-family:system-ui, sans-serif;
+  text-align:center;
+  padding:20px;
+  background:
+    radial-gradient(circle at 20% 20%, #fff1e6 0%, transparent 40%),
+    radial-gradient(circle at 80% 30%, #e8f5ff 0%, transparent 40%),
+    linear-gradient(180deg, #fffaf5, #eef7ff);
+}
+
+h1{
+  font-size:24px;
+}
+
+.cup{
+  width:120px;
+  height:160px;
+  border:4px solid #333;
+  border-radius:0 0 16px 16px;
+  margin:25px auto;
+  position:relative;
+  overflow:hidden;
+  background:white;
+}
+
+.coffee{
+  position:absolute;
+  bottom:0;
+  width:100%;
+  height:0%;
+  background:linear-gradient(#6f4e37,#4b2e20);
+  transition:height .08s;
+}
+
+.line{
+  position:absolute;
+  top:10px;
+  width:100%;
+  border-top:2px dashed red;
+  font-size:12px;
+  color:red;
+}
+
+button{
+  padding:10px 16px;
+  font-size:16px;
+  margin:6px;
+}
+
+#result{
+  margin-top:12px;
+  font-weight:bold;
+  min-height:24px;
+}
+.success{ color:green; }
+.fail{ color:red; }
+</style>
+</head>
+
+<body>
+
+<h1>☕ コーヒー寸前チャレンジ</h1>
+<p>こぼれる寸前で止めよう！</p>
+
+<div class="cup">
+  <div class="line">ここ！</div>
+  <div id="coffee" class="coffee"></div>
+</div>
+
+<button onclick="startPour()">▶ 注ぐ</button>
+<button onclick="stopPour()">■ 止める</button>
+
+<p id="result"></p>
+
+<p>
+  <a href="index.html">← もどる</a>
+</p>
+
+<script>
+let level = 0;
+let timer = null;
+let pouring = false;
+
+function startPour(){
+  if(pouring) return;
+
+  level = 0;
+  pouring = true;
+  document.getElementById("coffee").style.height = "0%";
+  document.getElementById("result").textContent = "";
+
+  timer = setInterval(()=>{
+    level += Math.random() * 1.5 + 0.4; // ランダム速度
+
+    if(level >= 100){
+      stopPour(true);
+    }else{
+      document.getElementById("coffee").style.height = level + "%";
+    }
+  },50);
+}
+
+function stopPour(overflow=false){
+  if(!pouring) return;
+
+  clearInterval(timer);
+  pouring = false
