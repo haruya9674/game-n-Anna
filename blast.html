@@ -1,91 +1,241 @@
-<script>
-const FADE_TIME = 600; // ← CSSと合わせる
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Blast Puzzle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-function markFade(list){
-  list.forEach(([r,c])=>{
-    if(board[r][c]){
-      board[r][c].fade = true;
+<style>
+body{
+  font-family:system-ui,sans-serif;
+  background:linear-gradient(180deg,#fff1f8,#e8f8ff);
+  text-align:center;
+  padding:12px;
+}
+
+a.back{
+  display:inline-block;
+  margin-bottom:6px;
+  padding:6px 12px;
+  background:white;
+  border-radius:12px;
+  text-decoration:none;
+  color:#333;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+
+h2{margin:6px 0;}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  max-width:320px;
+  margin:6px auto;
+}
+
+.panel{
+  background:white;
+  padding:6px 10px;
+  border-radius:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+  font-size:14px;
+}
+
+.grid{
+  display:grid;
+  gap:6px;
+  margin:10px auto;
+}
+
+.cell{
+  width:40px;
+  height:40px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  cursor:pointer;
+}
+
+.red{background:#ff7675;}
+.blue{background:#74b9ff;}
+.yellow{background:#ffeaa7;}
+.green{background:#55efc4;}
+.purple{background:#a29bfe;}
+
+.rocket{background:#fd79a8;color:white;}
+.bomb{background:#2d3436;color:white;}
+
+.fade{
+  animation:fade .6s forwards;
+}
+@keyframes fade{
+  to{opacity:0;transform:scale(1.4);}
+}
+
+#overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(255,255,255,.9);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  font-size:36px;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<a href="index.html" class="back">← Back to Menu</a>
+<h2 id="stage"></h2>
+
+<div class="top">
+  <div class="panel" id="moves"></div>
+  <div class="panel" id="goal"></div>
+</div>
+
+<div id="grid" class="grid"></div>
+<div id="overlay">🎉 CLEAR!</div>
+
+<script>
+const COLORS=["red","blue","yellow","green","purple"];
+const MAX_STAGE=100;
+const FADE_TIME=600;
+
+let stage=Number(localStorage.getItem("blastStage")||1);
+let ROWS,COLS,movesLeft,goal,board=[];
+
+function stageData(s){
+  return{
+    rows:6,
+    cols:6,
+    moves:20,
+    goals:{ [COLORS[s%COLORS.length]]:12 }
+  };
+}
+
+function randColor(){
+  return COLORS[Math.floor(Math.random()*COLORS.length)];
+}
+
+function init(){
+  const d=stageData(stage);
+  ROWS=d.rows; COLS=d.cols;
+  movesLeft=d.moves;
+  goal=JSON.parse(JSON.stringify(d.goals));
+  board=[];
+
+  for(let r=0;r<ROWS;r++){
+    board[r]=[];
+    for(let c=0;c<COLS;c++){
+      board[r][c]={type:"color",value:randColor()};
     }
-  });
+  }
+
+  document.getElementById("stage").textContent=`Stage ${stage}`;
+  updateUI();
   draw();
 }
 
-function removeAfterFade(list){
-  setTimeout(()=>{
-    list.forEach(([r,c])=>{
-      board[r][c] = null;
-    });
-    collapse();
-    refill();
-  }, FADE_TIME);
+function updateUI(){
+  document.getElementById("moves").textContent=`Moves: ${movesLeft}`;
+  document.getElementById("goal").textContent=
+    "Goal: "+Object.entries(goal).map(([k,v])=>`${k}:${Math.max(0,v)}`).join(" ");
 }
 
-function activate(r,c,type,combo){
-  let targets = [[r,c]];
-  const bomb = combo.bomb || 0;
-  const rocket = combo.rocket || 0;
+function draw(){
+  const g=document.getElementById("grid");
+  g.style.gridTemplateColumns=`repeat(${COLS},1fr)`;
+  g.innerHTML="";
 
-  // 🚀 ロケット処理
-  if(type==="rocket"){
-    const span = (rocket>=2 || combo.bomb)?2:1;
-    for(let d=-(span-1); d<=span-1; d++){
-      if(r+d>=0 && r+d<ROWS)
-        for(let i=0;i<COLS;i++) targets.push([r+d,i]);
-      if(c+d>=0 && c+d<COLS)
-        for(let i=0;i<ROWS;i++) targets.push([i,c+d]);
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const cell=board[r][c];
+      const d=document.createElement("div");
+      d.className="cell";
+
+      if(cell){
+        d.classList.add(cell.type==="color"?cell.value:cell.type);
+        if(cell.fade) d.classList.add("fade");
+        d.textContent=cell.type==="rocket"?"🚀":cell.type==="bomb"?"💣":"";
+        d.onclick=()=>tap(r,c);
+      }
+
+      g.appendChild(d);
     }
   }
-
-  // 💣 爆弾処理
-  if(type==="bomb"){
-    const range = bomb>=2 ? 3 : 2;
-    for(let dr=-range;dr<=range;dr++)
-      for(let dc=-range;dc<=range;dc++){
-        const nr=r+dr,nc=c+dc;
-        if(nr>=0&&nc>=0&&nr<ROWS&&nc<COLS)
-          targets.push([nr,nc]);
-      }
-  }
-
-  // 🎬 ゆっくり消す
-  markFade(targets);
-  removeAfterFade(targets);
 }
 
 function tap(r,c){
   if(movesLeft<=0||!board[r][c]) return;
   const cell=board[r][c];
 
-  if(cell.type!=="color"){
-    activate(r,c,cell.type,{[cell.type]:1});
-    endMove();
-    return;
+  let targets=[[r,c]];
+
+  if(cell.type==="rocket"){
+    for(let i=0;i<COLS;i++) targets.push([r,i]);
+    for(let i=0;i<ROWS;i++) targets.push([i,c]);
   }
 
-  const group=[];
-  flood(r,c,cell.value,group,{});
-  if(group.length<2) return;
+  if(cell.type==="bomb"){
+    for(let dr=-2;dr<=2;dr++)
+      for(let dc=-2;dc<=2;dc++){
+        const nr=r+dr,nc=c+dc;
+        if(nr>=0&&nc>=0&&nr<ROWS&&nc<COLS)
+          targets.push([nr,nc]);
+      }
+  }
 
-  let special=null;
-  if(group.length>=6) special="bomb";
-  else if(group.length>=4) special="rocket";
-
-  group.forEach(([x,y])=>{
-    if(goal[board[x][y].value]>0) goal[board[x][y].value]--;
+  targets.forEach(([x,y])=>{
+    if(board[x][y]) board[x][y].fade=true;
   });
 
-  markFade(group);
+  draw();
 
   setTimeout(()=>{
-    group.forEach(([x,y])=>board[x][y]=null);
-    if(special){
-      const [x,y]=group[0];
-      board[x][y]={type:special};
-    }
+    targets.forEach(([x,y])=>board[x][y]=null);
     collapse();
     refill();
   },FADE_TIME);
 
   endMove();
 }
+
+function collapse(){
+  for(let c=0;c<COLS;c++){
+    let stack=[];
+    for(let r=ROWS-1;r>=0;r--) if(board[r][c]) stack.push(board[r][c]);
+    for(let r=ROWS-1;r>=0;r--) board[r][c]=stack.shift()||null;
+  }
+}
+
+function refill(){
+  for(let r=0;r<ROWS;r++)
+    for(let c=0;c<COLS;c++)
+      if(!board[r][c]) board[r][c]={type:"color",value:randColor()};
+  draw();
+}
+
+function endMove(){
+  movesLeft--;
+  updateUI();
+
+  if(Object.values(goal).every(v=>v<=0)){
+    document.getElementById("overlay").style.display="flex";
+    setTimeout(()=>{
+      document.getElementById("overlay").style.display="none";
+      stage++;
+      localStorage.setItem("blastStage",stage);
+      init();
+    },1000);
+  }
+}
+
+init();
 </script>
+
+</body>
+</html>
