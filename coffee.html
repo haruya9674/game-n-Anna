@@ -16,9 +16,7 @@ body{
     linear-gradient(180deg, #fffaf5, #eef7ff);
 }
 
-h1{
-  font-size:24px;
-}
+h1{ font-size:24px; }
 
 .cup{
   width:120px;
@@ -37,7 +35,6 @@ h1{
   width:100%;
   height:0%;
   background:linear-gradient(#6f4e37,#4b2e20);
-  transition:height .08s;
 }
 
 .line{
@@ -80,9 +77,7 @@ button{
 
 <p id="result"></p>
 
-<p>
-  <a href="index.html">← もどる</a>
-</p>
+<p><a href="index.html">← もどる</a></p>
 
 <script>
 let level = 0;
@@ -94,22 +89,41 @@ function startPour(){
 
   level = 0;
   pouring = true;
+
   document.getElementById("coffee").style.height = "0%";
   document.getElementById("result").textContent = "";
 
-  timer = setInterval(()=>{
-    level += Math.random() * 1.5 + 0.4; // ランダム速度
+  timer = setInterval(() => {
+    level += Math.random() * 1.5 + 0.5;
 
     if(level >= 100){
       stopPour(true);
-    }else{
+    } else {
       document.getElementById("coffee").style.height = level + "%";
     }
-  },50);
+  }, 50);
 }
 
-function stopPour(overflow=false){
+function stopPour(overflow = false){
   if(!pouring) return;
 
   clearInterval(timer);
-  pouring = false
+  pouring = false;
+
+  const result = document.getElementById("result");
+
+  if(!overflow && level >= 90 && level <= 98){
+    result.textContent = `🎉 成功！ ${level.toFixed(1)}%`;
+    result.className = "success";
+  } else if(!overflow && level < 90){
+    result.textContent = `😅 少なすぎ！ ${level.toFixed(1)}%`;
+    result.className = "fail";
+  } else {
+    result.textContent = `💥 こぼれた！ ${level.toFixed(1)}%`;
+    result.className = "fail";
+  }
+}
+</script>
+
+</body>
+</html>
