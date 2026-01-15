@@ -80,7 +80,6 @@ button{
 <body>
 
 <h1>☕🍺 ギリギリ注ぎチャレンジ<br><small>Perfect Pour Challenge</small></h1>
-<p>98%〜101%で成功 / Sweet Spot Challenge</p>
 
 <div class="mode">
   <button id="coffeeBtn" class="active" onclick="setMode('coffee')">☕ Coffee</button>
@@ -149,11 +148,11 @@ function startPour(){
   pouring = true;
 
   timer = setInterval(()=>{
-    // ☕🍺 同じスピード
+    // ☕🍺 同一スピード
     let speed = Math.random()*1.4 + 1.0;
     level += speed;
 
-    if(level > 101){
+    if(level > 100.09){
       stopPour(true);
     }else{
       document.getElementById("liquid").style.height = level + "%";
@@ -169,14 +168,14 @@ function stopPour(overflow=false){
 
   const r = document.getElementById("result");
 
-  if(!overflow && level >= 98 && level <= 101){
-    r.textContent = `🎉 SUCCESS! / 成功 (${level.toFixed(1)}%)`;
+  if(!overflow && level >= 98.9 && level <= 100.09){
+    r.textContent = `🎉 SUCCESS! / 成功 (${level.toFixed(2)}%)`;
     r.className = "success";
     playBeep(880);
   }else{
     r.textContent = overflow
-      ? `💥 OVERFLOW! / こぼれた (${level.toFixed(1)}%)`
-      : `❌ FAIL / 失敗 (${level.toFixed(1)}%)`;
+      ? `💥 OVERFLOW! / こぼれた (${level.toFixed(2)}%)`
+      : `❌ FAIL / 失敗 (${level.toFixed(2)}%)`;
     r.className = "fail";
     playBeep(220);
   }
