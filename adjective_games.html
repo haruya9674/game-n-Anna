@@ -14,6 +14,22 @@ body{
 }
 h1{margin-bottom:10px}
 
+/* ===== back button ===== */
+.back-menu{
+  display:inline-block;
+  margin-bottom:15px;
+  padding:10px 18px;
+  background:#555;
+  color:white;
+  border-radius:10px;
+  text-decoration:none;
+  font-weight:bold;
+}
+.back-menu:active{
+  transform:scale(0.95);
+}
+
+/* ===== tabs ===== */
 .tabs{
   display:flex;
   gap:6px;
@@ -40,7 +56,7 @@ h1{margin-bottom:10px}
   font-weight:bold;
 }
 
-/* ===== buttons (検証用と同じ思想) ===== */
+/* ===== answer buttons ===== */
 .btn{
   width:140px;
   font-size:20px;
@@ -90,6 +106,9 @@ h1{margin-bottom:10px}
 
 <body>
 
+<!-- 🔙 Back to Menu -->
+<a href="index.html" class="back-menu">← Back to Menu</a>
+
 <h1>Adjective Learning</h1>
 
 <div class="tabs">
@@ -127,7 +146,6 @@ h1{margin-bottom:10px}
 </div>
 
 <script>
-/* ===== speech ===== */
 function speak(text){
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
@@ -135,7 +153,6 @@ function speak(text){
   speechSynthesis.speak(u);
 }
 
-/* ===== tabs ===== */
 function show(id){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -143,7 +160,6 @@ function show(id){
   event.target.classList.add('active');
 }
 
-/* ===== DATA (増量済み・EFL向け) ===== */
 const words = [
   ["happy",true],["sad",true],["angry",true],["excited",true],
   ["friendly",true],["kind",true],["polite",true],["brave",true],
@@ -163,7 +179,6 @@ const words = [
 let score = 0;
 let current = null;
 
-/* ===== game ===== */
 function next(){
   current = words[Math.floor(Math.random()*words.length)];
   document.getElementById("gameWord").textContent = current[0];
@@ -179,7 +194,6 @@ function answer(isAdj){
   setTimeout(next,600);
 }
 
-/* ===== lists ===== */
 const adjList = document.getElementById("adjList");
 const notList = document.getElementById("notList");
 
