@@ -46,14 +46,12 @@ input{
   font-size:20px;
 }
 
-.hiragana span{
-  display:inline-block;
-  margin:4px;
-  padding:6px 10px;
-  background:#fff0f6;
-  border-radius:10px;
-  cursor:pointer;
+.hiragana{
   font-size:20px;
+  background:#fff0f6;
+  padding:10px;
+  border-radius:12px;
+  cursor:pointer;
 }
 
 button,a{
@@ -91,7 +89,7 @@ button:active{
 
 <div class="card">
   <div class="label">Reading (Hiragana)</div>
-  <div class="hiragana" id="hira">—</div>
+  <div class="hiragana" id="hira" onclick="speakHira()">—</div>
 </div>
 
 <div class="card">
@@ -100,59 +98,38 @@ button:active{
 </div>
 
 <script>
-// 超シンプル子供向け辞書（必要ならどんどん増やせる）
+// 子供向け・壊れない簡易辞書
 const dictionary = {
-  "apple":"りんご",
-  "dog":"いぬ",
-  "cat":"ねこ",
-  "monster":"モンスター",
-  "forest":"もり",
-  "light":"ひかり",
-  "dark":"くらやみ",
-  "hero":"えいゆう",
-  "child":"こども"
+  apple:{jp:"りんご", hira:"りんご"},
+  dog:{jp:"いぬ", hira:"いぬ"},
+  cat:{jp:"ねこ", hira:"ねこ"},
+  monster:{jp:"モンスター", hira:"もんすたー"},
+  forest:{jp:"森", hira:"もり"},
+  light:{jp:"光", hira:"ひかり"},
+  dark:{jp:"暗やみ", hira:"くらやみ"},
+  hero:{jp:"英雄", hira:"えいゆう"},
+  child:{jp:"子ども", hira:"こども"}
 };
-
-// ひらがな変換（最低限・学習用）
-function toHiragana(jp){
-  const map = {
-    "り":"り","ん":"ん","ご":"ご",
-    "い":"い","ぬ":"ぬ",
-    "ね":"ね","こ":"こ",
-    "も":"も","り":"り",
-    "ひ":"ひ","か":"か","り":"り",
-    "く":"く","ら":"ら","や":"や","み":"み",
-    "え":"え","い":"い","ゆ":"ゆ","う":"う",
-    "こ":"こ","ど":"ど","も":"も"
-  };
-  return jp.split("").map(c=>map[c]||c).join("");
-}
 
 function process(){
   const eng = document.getElementById("eng").value.toLowerCase().trim();
   if(!eng){
-    document.getElementById("jp").innerText="—";
-    document.getElementById("hira").innerHTML="—";
+    jp.innerText = "—";
+    hira.innerText = "—";
     return;
   }
 
-  const jp = dictionary[eng] || "（日本語の意味）";
-  document.getElementById("jp").innerText = jp;
-
-  const hira = toHiragana(jp);
-  const container = document.getElementById("hira");
-  container.innerHTML = "";
-
-  hira.split("").forEach(ch=>{
-    const span = document.createElement("span");
-    span.innerText = ch;
-    span.onclick = ()=> speakHira(ch);
-    container.appendChild(span);
-  });
+  if(dictionary[eng]){
+    jp.innerText = dictionary[eng].jp;
+    hira.innerText = dictionary[eng].hira;
+  }else{
+    jp.innerText = "（意味を先生といっしょに考えてみよう）";
+    hira.innerText = "いみをいっしょにかんがえてみよう";
+  }
 }
 
 function speakEN(){
-  const t = document.getElementById("eng").value;
+  const t = eng.value;
   if(!t) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(t);
@@ -163,18 +140,18 @@ function speakEN(){
 }
 
 function speakJP(){
-  const t = document.getElementById("jp").innerText;
-  if(!t || t==="—") return;
+  if(jp.innerText==="—") return;
   speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(t);
+  const u = new SpeechSynthesisUtterance(jp.innerText);
   u.lang="ja-JP";
   u.rate=0.6;
   speechSynthesis.speak(u);
 }
 
-function speakHira(ch){
+function speakHira(){
+  if(hira.innerText==="—") return;
   speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(ch);
+  const u = new SpeechSynthesisUtterance(hira.innerText);
   u.lang="ja-JP";
   u.rate=0.5;
   speechSynthesis.speak(u);
