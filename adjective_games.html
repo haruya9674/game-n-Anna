@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game 1 – Judge</title>
+<title>Adjective Judge</title>
 <style>
 body{font-family:system-ui;text-align:center;background:#f0f8ff;padding:20px}
 .word{font-size:32px;font-weight:bold;margin:20px}
-button{padding:14px 20px;margin:8px;font-size:18px;border-radius:10px}
-.result{font-size:20px;margin-top:10px}
+button{padding:16px 24px;margin:10px;font-size:18px;border-radius:12px}
+.result{font-size:22px;margin-top:12px}
 .score{font-weight:bold;margin-top:10px}
 </style>
 </head>
 <body>
 
-<h1>Game 1: Adjective or Not</h1>
+<h1>Adjective or Not</h1>
 
 <div id="word" class="word"></div>
 
@@ -29,29 +29,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const words = [
     {w:"happy",a:true},{w:"angry",a:true},{w:"noisy",a:true},
-    {w:"quiet",a:true},{w:"polite",a:true},{w:"lazy",a:true},
-    {w:"brave",a:true},{w:"careful",a:true},{w:"dirty",a:true},
-    {w:"clean",a:true},{w:"heavy",a:true},{w:"light",a:true},
-    {w:"empty",a:true},{w:"full",a:true},{w:"soft",a:true},
-    {w:"hard",a:true},{w:"cheap",a:true},{w:"expensive",a:true},
-    {w:"safe",a:true},{w:"dangerous",a:true},
+    {w:"quiet",a:true},{w:"clean",a:true},{w:"dirty",a:true},
+    {w:"brave",a:true},{w:"careful",a:true},{w:"safe",a:true},
+    {w:"dangerous",a:true},
     {w:"apple",a:false},{w:"run",a:false},{w:"dog",a:false},
-    {w:"sing",a:false},{w:"table",a:false},{w:"jump",a:false},
-    {w:"book",a:false},{w:"teacher",a:false},{w:"drink",a:false}
+    {w:"sing",a:false},{w:"book",a:false},{w:"teacher",a:false}
   ];
 
+  let list = [];
   let index = 0;
   let score = 0;
-  let list = [];
+  let locked = false;
 
   const wordEl = document.getElementById("word");
   const resultEl = document.getElementById("result");
   const scoreEl = document.getElementById("score");
 
   function speak(text){
+    speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "en-US";
-    speechSynthesis.cancel();
     speechSynthesis.speak(u);
   }
 
@@ -61,12 +58,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function show(){
+    locked = false;
     if(index >= list.length) shuffle();
     wordEl.textContent = list[index].w;
     resultEl.textContent = "";
   }
 
   function judge(ans){
+    if(locked) return;
+    locked = true;
+
     const correct = list[index].a === ans;
     if(correct){
       score++;
@@ -78,19 +79,19 @@ document.addEventListener("DOMContentLoaded", () => {
       resultEl.style.color = "red";
       speak("Wrong");
     }
+
     scoreEl.textContent = "Score: " + score;
     index++;
     setTimeout(show, 600);
   }
 
-  ["click","pointerup"].forEach(e=>{
-    document.getElementById("yes").addEventListener(e,()=>judge(true));
-    document.getElementById("no").addEventListener(e,()=>judge(false));
-  });
+  document.getElementById("yes").addEventListener("pointerup", ()=>judge(true));
+  document.getElementById("no").addEventListener("pointerup", ()=>judge(false));
 
   shuffle();
   show();
 });
 </script>
+
 </body>
 </html>
