@@ -6,107 +6,21 @@
 <title>Adjective Game Hub</title>
 
 <style>
-body{
-  font-family:system-ui, sans-serif;
-  background:#f0f8ff;
-  padding:20px;
-}
-
-h1{text-align:center;}
-
-.top-menu{text-align:center;margin-bottom:15px;}
-
-.back-btn{
-  padding:10px 18px;
-  font-size:15px;
-  border-radius:20px;
-  cursor:pointer;
-}
-
-.tabs{
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  margin-bottom:15px;
-}
-
-.tab{
-  flex:1;
-  padding:10px;
-  text-align:center;
-  background:#ddd;
-  border-radius:8px;
-  cursor:pointer;
-}
-
-.tab.active{
-  background:#87ceeb;
-  font-weight:bold;
-}
-
-.game{
-  display:none;
-  background:#fff;
-  padding:15px;
-  border-radius:12px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.15);
-}
-
-.game.active{display:block;}
-
-.word-box{
-  font-size:26px;
-  font-weight:bold;
-  margin:15px 0;
-}
-
-button{
-  padding:10px 16px;
-  font-size:16px;
-  margin:5px;
-  border-radius:8px;
-  cursor:pointer;
-}
-
-.score{font-weight:bold;margin-top:8px;}
-
-.feedback{
-  font-size:18px;
-  font-weight:bold;
-  min-height:22px;
-}
-
-.correct{color:#2e8b57;}
-.wrong{color:#cc0000;}
-
-.word{
-  display:inline-block;
-  padding:6px;
-  margin:3px;
-  border:1px solid #ccc;
-  border-radius:6px;
-  cursor:pointer;
-}
-
-.draggable{
-  display:inline-block;
-  padding:8px;
-  margin:5px;
-  border:1px solid #aaa;
-  border-radius:6px;
-  background:#fff;
-  cursor:grab;
-}
-
-.dropzone{
-  display:inline-block;
-  min-width:90px;
-  padding:10px;
-  margin:5px;
-  border:2px dashed #aaa;
-  border-radius:6px;
-  text-align:center;
-}
+body{font-family:system-ui,sans-serif;background:#f0f8ff;padding:20px}
+h1{text-align:center}
+.top-menu{text-align:center;margin-bottom:15px}
+.back-btn{padding:10px 18px;font-size:15px;border-radius:20px;cursor:pointer}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:15px}
+.tab{flex:1;padding:10px;text-align:center;background:#ddd;border-radius:8px;cursor:pointer}
+.tab.active{background:#87ceeb;font-weight:bold}
+.game{display:none;background:#fff;padding:15px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.15)}
+.game.active{display:block}
+.word-box{font-size:26px;font-weight:bold;margin:15px 0}
+button{padding:10px 16px;font-size:16px;margin:5px;border-radius:8px;cursor:pointer}
+.score{font-weight:bold;margin-top:8px}
+.feedback{font-size:18px;font-weight:bold;min-height:22px}
+.correct{color:#2e8b57}
+.wrong{color:#cc0000}
 </style>
 </head>
 
@@ -120,9 +34,6 @@ button{
 
 <div class="tabs">
   <div class="tab active" data-game="game1">1. Judge</div>
-  <div class="tab" data-game="game2">2. Category</div>
-  <div class="tab" data-game="game3">3. Find</div>
-  <div class="tab" data-game="game4">4. Fill</div>
   <div class="tab" data-game="game5">5. Speed</div>
 </div>
 
@@ -136,32 +47,6 @@ button{
   <div id="score1" class="score">Score: 0</div>
 </div>
 
-<!-- GAME 2 -->
-<div id="game2" class="game">
-  <h2>Adjective Categories</h2>
-  <div id="draggables2"></div>
-  <div id="dropzones2"></div>
-  <div id="feedback2" class="feedback"></div>
-  <div id="score2" class="score">Score: 0</div>
-</div>
-
-<!-- GAME 3 -->
-<div id="game3" class="game">
-  <h2>Find the Adjectives</h2>
-  <div id="sentence3"></div>
-  <div id="feedback3" class="feedback"></div>
-  <div id="score3" class="score">Score: 0</div>
-</div>
-
-<!-- GAME 4 -->
-<div id="game4" class="game">
-  <h2>Fill in the Blank</h2>
-  <div id="sentence4"></div>
-  <div id="options4"></div>
-  <div id="feedback4" class="feedback"></div>
-  <div id="score4" class="score">Score: 0</div>
-</div>
-
 <!-- GAME 5 -->
 <div id="game5" class="game">
   <h2>Adjective Speed Game</h2>
@@ -173,10 +58,11 @@ button{
 </div>
 
 <script>
-/* Voice */
-function speak(t){
-  const u=new SpeechSynthesisUtterance(t);
-  u.lang="en-US";
+/* ===== Voice (FIXED) ===== */
+function speak(text){
+  speechSynthesis.cancel();   // ← ★重要：初回停止バグ防止
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-US";
   speechSynthesis.speak(u);
 }
 
@@ -190,50 +76,54 @@ document.querySelectorAll('.tab').forEach(tab=>{
   };
 });
 
-/* === WORD POOL (80 words) === */
+/* WORD POOL */
 const wordPool=[
-/* adjectives */
 ["ancient",1],["brave",1],["curious",1],["dangerous",1],["eager",1],
 ["famous",1],["generous",1],["honest",1],["important",1],["joyful",1],
-["kind",1],["lazy",1],["mysterious",1],["narrow",1],["polite",1],
-["quiet",1],["rapid",1],["serious",1],["talented",1],["useful",1],
-["valuable",1],["wise",1],["young",1],["ancient",1],["friendly",1],
-["careful",1],["powerful",1],["peaceful",1],["clever",1],["creative",1],
-["healthy",1],["proud",1],["honorable",1],["confident",1],["active",1],
-["patient",1],["shallow",1],["deep",1],["bright",1],["calm",1],
-
-/* not adjectives */
+["kind",1],["mysterious",1],["valuable",1],["wise",1],["confident",1],
 ["discover",0],["explain",0],["arrive",0],["decide",0],["protect",0],
-["create",0],["believe",0],["move",0],["travel",0],["teacher",0],
-["student",0],["village",0],["history",0],["music",0],["science",0],
-["library",0],["computer",0],["river",0],["mountain",0],["country",0]
+["history",0],["science",0],["village",0],["computer",0],["mountain",0]
 ].map(w=>({w:w[0],a:!!w[1]}));
 
-/* GAME 1 */
+/* ===== GAME 1 (FIXED) ===== */
 let s1=0,c1;
-function next1(){c1=wordPool[Math.floor(Math.random()*wordPool.length)];word1.textContent=c1.w;}
+function next1(){
+  c1 = wordPool[Math.floor(Math.random()*wordPool.length)];
+  word1.textContent = c1.w;
+}
 function check1(ans){
- const ok=ans===c1.a;
- feedback1.textContent=ok?"✅ Correct!":"❌ Wrong!";
- feedback1.className="feedback "+(ok?"correct":"wrong");
- speak(ok?"Correct":"Wrong");
- if(ok)s1++;
- score1.textContent="Score: "+s1;
- setTimeout(()=>{feedback1.textContent="";next1();},700);
+  const ok = ans === c1.a;
+  feedback1.textContent = ok ? "✅ Correct!" : "❌ Wrong!";
+  feedback1.className = "feedback " + (ok ? "correct" : "wrong");
+  speak(ok ? "Correct" : "Wrong");
+  if(ok) s1++;
+  score1.textContent = "Score: " + s1;
+
+  setTimeout(()=>{
+    feedback1.textContent="";
+    next1();                  // ← ★必ず次へ
+  },700);
 }
 next1();
 
-/* GAME 5 */
+/* ===== GAME 5 (SAFE) ===== */
 let s5=0,c5;
-function next5(){c5=wordPool[Math.floor(Math.random()*wordPool.length)];word5.textContent=c5.w;}
+function next5(){
+  c5 = wordPool[Math.floor(Math.random()*wordPool.length)];
+  word5.textContent = c5.w;
+}
 function check5(ans){
- const ok=ans===c5.a;
- feedback5.textContent=ok?"✅ Correct!":"❌ Wrong!";
- feedback5.className="feedback "+(ok?"correct":"wrong");
- speak(ok?"Correct":"Wrong");
- if(ok)s5++;
- score5.textContent="Score: "+s5;
- setTimeout(next5,600);
+  const ok = ans === c5.a;
+  feedback5.textContent = ok ? "✅ Correct!" : "❌ Wrong!";
+  feedback5.className = "feedback " + (ok ? "correct" : "wrong");
+  speak(ok ? "Correct" : "Wrong");
+  if(ok) s5++;
+  score5.textContent = "Score: " + s5;
+
+  setTimeout(()=>{
+    feedback5.textContent="";
+    next5();
+  },600);
 }
 next5();
 </script>
