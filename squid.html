@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>🦑 イカゲーム Squid Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  font-family:system-ui, sans-serif;
+  text-align:center;
+  padding:20px;
+  background:
+    radial-gradient(circle at 20% 20%, #ffecec 0%, transparent 40%),
+    radial-gradient(circle at 80% 30%, #e8fff1 0%, transparent 40%),
+    linear-gradient(180deg, #fff, #f2f2f2);
+}
+
+h1{
+  font-size:26px;
+  margin-bottom:6px;
+}
+
+.sub{
+  font-size:14px;
+  color:#666;
+  margin-bottom:20px;
+}
+
+.field{
+  width:280px;
+  height:120px;
+  border:4px solid #333;
+  border-radius:14px;
+  margin:20px auto;
+  position:relative;
+  background:#fff;
+}
+
+.player{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  background:#ff5a5a;
+  position:absolute;
+  left:0;
+  top:45px;
+  transition:left 0.15s linear;
+}
+
+.goal{
+  position:absolute;
+  right:0;
+  top:0;
+  width:6px;
+  height:100%;
+  background:#4caf50;
+}
+
+.light{
+  font-size:24px;
+  font-weight:bold;
+  margin:14px 0;
+}
+
+.green{ color:#2e7d32; }
+.red{ color:#c62828; }
+
+button{
+  padding:14px 22px;
+  font-size:16px;
+  border:none;
+  border-radius:14px;
+  margin:6px;
+  box-shadow:0 4px 10px rgba(0,0,0,.2);
+}
+
+#tapBtn:active{
+  transform:scale(0.95);
+}
+
+.result{
+  font-size:20px;
+  margin-top:14px;
+  min-height:1.5em;
+}
+
+.success{ color:#2e7d32; font-weight:bold; }
+.fail{ color:#c62828; font-weight:bold; }
+
+.back{
+  display:block;
+  margin-top:14px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🦑 イカゲーム</h1>
+<div class="sub">Squid Game – Red Light, Green Light</div>
+
+<div class="field">
+  <div class="goal"></div>
+  <div id="player" class="player"></div>
+</div>
+
+<div id="light" class="light green">🟢 GREEN LIGHT</div>
+
+<button id="tapBtn" onclick="move()">TAP / 進む</button>
+<br>
+<button onclick="resetGame()">START / RESET</button>
+
+<div id="result" class="result"></div>
+
+<a href="index.html" class="back">← BACK</a>
+
+<script>
+let pos = 0;
+let state = "green"; // green / red
+let timer = null;
+let finished = false;
+
+function startLight(){
+  timer = setInterval(()=>{
+    if(finished) return;
+    state = Math.random() > 0.5 ? "green" : "red";
+    const l = document.getElementById("light");
+    if(state === "green"){
+      l.textContent = "🟢 GREEN LIGHT";
+      l.className = "light green";
+    }else{
+      l.textContent = "🔴 RED LIGHT";
+      l.className = "light red";
+    }
+  }, 1200);
+}
+
+function move(){
+  if(finished) return;
+
+  if(state === "red"){
+    finish(false);
+    return;
+  }
+
+  pos += 18;
+  document.getElementById("player").style.left = pos + "px";
+
+  if(pos >= 250){
+    finish(true);
+  }
+}
+
+function finish(success){
+  finished = true;
+  clearInterval(timer);
+
+  const r = document.getElementById("result");
+  if(success){
+    r.textContent = "🎉 SUCCESS! / 成功";
+    r.className = "result success";
+  }else{
+    r.textContent = "💥 FAILED! / 失敗";
+    r.className = "result fail";
+  }
+}
+
+function resetGame(){
+  clearInterval(timer);
+  pos = 0;
+  finished = false;
+  state = "green";
+  document.getElementById("player").style.left = "0px";
+  document.getElementById("result").textContent = "";
+  document.getElementById("light").textContent = "🟢 GREEN LIGHT";
+  document.getElementById("light").className = "light green";
+  startLight();
+}
+
+// start
+startLight();
+</script>
+
+</body>
+</html>
