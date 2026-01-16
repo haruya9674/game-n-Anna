@@ -1,172 +1,160 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Adjective Games</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adjective Learning</title>
 
 <style>
 body{
-  font-family:system-ui,sans-serif;
-  background:#f7fbff;
+  font-family: system-ui, sans-serif;
   text-align:center;
-  padding:15px;
+  background:#f4faff;
+  padding:20px;
 }
-h1{font-size:22px}
-select{
-  font-size:16px;
-  padding:8px;
-  margin:10px 0;
-}
-.word{
-  font-size:34px;
-  margin:25px 0;
-}
-.buttons{
+h1{margin-bottom:10px}
+.tabs{
   display:flex;
-  justify-content:center;
-  gap:16px;
+  gap:6px;
+  margin-bottom:20px;
+}
+.tab{
+  flex:1;
+  padding:10px;
+  background:#ddd;
+  border-radius:8px;
+  cursor:pointer;
+}
+.tab.active{
+  background:#87ceeb;
+  font-weight:bold;
+}
+.section{display:none}
+.section.active{display:block}
+
+.word{
+  font-size:32px;
+  margin:20px 0;
 }
 button{
   font-size:18px;
-  padding:14px 22px;
-  border-radius:12px;
-  border:none;
+  padding:10px 20px;
+  margin:5px;
+  border-radius:8px;
 }
-.yes{background:#4caf50;color:white}
-.no{background:#f44336;color:white}
-.score{margin-top:15px;font-size:16px}
-.menu{margin-top:25px}
-.menu a{text-decoration:none;color:#007aff}
+.result{
+  font-size:20px;
+  margin-top:10px;
+  height:24px;
+}
+.score{
+  margin-top:10px;
+  font-weight:bold;
+}
+.list{
+  max-width:500px;
+  margin:auto;
+}
+.list div{
+  background:white;
+  padding:10px;
+  margin:6px 0;
+  border-radius:6px;
+  cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
 </style>
 </head>
 
 <body>
 
-<h1>Adjective Games</h1>
+<h1>Adjective Learning</h1>
 
-<select id="mode" onchange="startGame()">
-  <option value="1">Game 1：Basic Judge</option>
-  <option value="2">Game 2：Adjective Only</option>
-  <option value="3">Game 3：Not Adjective Only</option>
-  <option value="4">Game 4：Mixed Fast</option>
-  <option value="5">Game 5：Score Challenge</option>
-</select>
-
-<div class="word" id="word">---</div>
-
-<div class="buttons">
-  <button class="yes" onclick="answer(true)">Adjective</button>
-  <button class="no" onclick="answer(false)">Not Adjective</button>
+<div class="tabs">
+  <div class="tab active" onclick="show('game')">Game</div>
+  <div class="tab" onclick="show('adj')">Adjective List</div>
+  <div class="tab" onclick="show('not')">Not Adjective List</div>
 </div>
 
-<div class="score">
-  Score: <span id="score">0</span> /
-  <span id="total">0</span>
+<!-- GAME -->
+<div id="game" class="section active">
+  <div class="word" id="gameWord">---</div>
+  <button onclick="answer(true)">Adjective</button>
+  <button onclick="answer(false)">Not Adjective</button>
+  <div class="result" id="result"></div>
+  <div class="score" id="score">Score: 0</div>
 </div>
 
-<div class="menu">
-  <a href="index.html">← メニューに戻る</a>
+<!-- ADJECTIVE LIST -->
+<div id="adj" class="section">
+  <h2>Adjectives</h2>
+  <div class="list" id="adjList"></div>
+</div>
+
+<!-- NOT ADJECTIVE LIST -->
+<div id="not" class="section">
+  <h2>Not Adjectives</h2>
+  <div class="list" id="notList"></div>
 </div>
 
 <script>
-/* ===== 音声 ===== */
-function say(text){
+const speak = text => {
   speechSynthesis.cancel();
-  speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-US";
+  speechSynthesis.speak(u);
+};
+
+function show(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
 }
 
-/* ===== 単語（100語以上）===== */
-const allWords = [
-  // adjectives
-  "happy","sad","angry","tired","excited","quiet","noisy","kind","mean","brave",
-  "careful","dangerous","safe","clean","dirty","fast","slow","heavy","light",
-  "strong","weak","tall","short","wide","narrow","early","late","easy",
-  "difficult","interesting","boring","popular","famous","useful","helpful",
-  "friendly","polite","rude","healthy","sick","delicious","terrible","bright",
-  "dark","soft","hard","busy","lazy","crowded","empty",
-
-  // not adjectives
-  "run","eat","jump","teacher","student","school","apple","music","play","study",
-  "book","pen","city","river","computer","phone","drive","swim","house","friend",
-  "family","doctor","market","food","game","chair","table","animal","car","road",
-  "ball","movie","song","drink","read","write","listen","walk","talk","cook",
-  "sleep","draw","open","close","buy","sell"
+/* -------- DATA -------- */
+const words = [
+  ["happy",true],["sad",true],["angry",true],["excited",true],
+  ["big",true],["small",true],["tall",true],["short",true],
+  ["fast",true],["slow",true],["clean",true],["dirty",true],
+  ["bright",true],["dark",true],["quiet",true],["loud",true],
+  ["safe",true],["dangerous",true],["easy",true],["difficult",true],
+  ["teacher",false],["dog",false],["run",false],["jump",false],
+  ["eat",false],["city",false],["book",false],["music",false],
+  ["play",false],["write",false],["water",false],["car",false],
+  ["think",false],["house",false],["child",false],["school",false]
 ];
 
-/* ===== 判定 ===== */
-function isAdjective(word){
-  return [
-    "happy","sad","angry","tired","excited","quiet","noisy","kind","mean","brave",
-    "careful","dangerous","safe","clean","dirty","fast","slow","heavy","light",
-    "strong","weak","tall","short","wide","narrow","early","late","easy",
-    "difficult","interesting","boring","popular","famous","useful","helpful",
-    "friendly","polite","rude","healthy","sick","delicious","terrible","bright",
-    "dark","soft","hard","busy","lazy","crowded","empty"
-  ].includes(word);
+let score = 0;
+let current = null;
+
+function next(){
+  current = words[Math.floor(Math.random()*words.length)];
+  document.getElementById("gameWord").textContent = current[0];
+  document.getElementById("result").textContent = "";
 }
 
-/* ===== 状態 ===== */
-let list=[], index=0, score=0, lock=false;
-
-/* ===== シャッフル ===== */
-function shuffle(arr){
-  for(let i=arr.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
-  }
+function answer(isAdj){
+  const correct = isAdj === current[1];
+  document.getElementById("result").textContent = correct ? "Correct!" : "Wrong!";
+  speak(correct ? "Correct" : "Wrong");
+  if(correct) score++;
+  document.getElementById("score").textContent = "Score: " + score;
+  setTimeout(next,600);
 }
 
-/* ===== 開始 ===== */
-function startGame(){
-  const mode = document.getElementById("mode").value;
-  index=0; score=0; lock=false;
+/* lists */
+const adjList = document.getElementById("adjList");
+const notList = document.getElementById("notList");
 
-  if(mode==="1" || mode==="4" || mode==="5"){
-    list=[...allWords];
-  }
-  if(mode==="2"){
-    list=allWords.filter(isAdjective);
-  }
-  if(mode==="3"){
-    list=allWords.filter(w=>!isAdjective(w));
-  }
+words.forEach(w=>{
+  const d = document.createElement("div");
+  d.textContent = w[0];
+  d.onclick = ()=>speak(w[0]);
+  (w[1] ? adjList : notList).appendChild(d);
+});
 
-  shuffle(list);
-  document.getElementById("score").textContent=0;
-  document.getElementById("total").textContent=list.length;
-  showWord();
-}
-
-/* ===== 表示 ===== */
-function showWord(){
-  lock=false;
-  if(index>=list.length){
-    document.getElementById("word").textContent="Finished!";
-    return;
-  }
-  document.getElementById("word").textContent=list[index];
-}
-
-/* ===== 回答 ===== */
-function answer(choice){
-  if(lock) return;
-  lock=true;
-
-  const correct = isAdjective(list[index])===choice;
-  if(correct){
-    score++;
-    document.getElementById("score").textContent=score;
-    say("Correct");
-  }else{
-    say("Wrong");
-  }
-  index++;
-  setTimeout(showWord,600);
-}
-
-/* 初期 */
-startGame();
+next();
 </script>
 
 </body>
