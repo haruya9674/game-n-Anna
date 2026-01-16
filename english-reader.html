@@ -1,83 +1,164 @@
+このページにこれまでに出た全ての単語と他にも関連単語や小学生が必要な単語を可能な限り含めて。
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>英語 → 日本語</title>
+<title>English Reader</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-  body{font-family:sans-serif;padding:20px}
-  input{font-size:18px;padding:6px;width:200px}
-  .box{margin-top:10px;font-size:20px}
+body{
+  font-family:system-ui,sans-serif;
+  padding:20px;
+  background:linear-gradient(180deg,#fff6fb,#f0fbff);
+  max-width:640px;
+  margin:auto;
+}
+
+h1{
+  text-align:center;
+  margin-bottom:12px;
+}
+
+input{
+  width:100%;
+  padding:14px;
+  font-size:18px;
+  border-radius:14px;
+  border:1px solid #ccc;
+  margin-bottom:14px;
+}
+
+.card{
+  background:white;
+  padding:16px;
+  border-radius:18px;
+  box-shadow:0 6px 14px rgba(0,0,0,.15);
+  margin-bottom:14px;
+}
+
+.label{
+  font-size:13px;
+  color:#666;
+  margin-bottom:6px;
+}
+
+.text{
+  font-size:20px;
+}
+
+.hiragana{
+  font-size:20px;
+  background:#fff0f6;
+  padding:10px;
+  border-radius:12px;
+  cursor:pointer;
+}
+
+button,a{
+  padding:12px 18px;
+  border:none;
+  border-radius:14px;
+  font-size:16px;
+  background:white;
+  box-shadow:0 4px 10px rgba(0,0,0,.2);
+  cursor:pointer;
+  margin:6px;
+  text-decoration:none;
+  color:#333;
+}
+
+button:active{
+  transform:scale(0.96);
+}
 </style>
 </head>
+
 <body>
 
-<h2>英語 → 日本語</h2>
+<a href="index.html">← Back to Menu</a>
 
-<input id="eng" placeholder="english word" oninput="process()">
+<h1>🔤 English Reader</h1>
 
-<div class="box">日本語：<span id="jp">—</span></div>
-<div class="box">ひらがな：<span id="hira">—</span></div>
-<div class="box">登録単語数：<span id="count">0</span></div>
+<input id="eng" placeholder="Type English here…" oninput="process()">
+
+<div class="card">
+  <div class="label">Japanese</div>
+  <div class="text" id="jp">—</div>
+  <button onclick="speakJP()">🔊 日本語</button>
+</div>
+
+<div class="card">
+  <div class="label">Reading (Hiragana)</div>
+  <div class="hiragana" id="hira" onclick="speakHira()">—</div>
+</div>
+
+<div class="card">
+  <div class="label">English Pronunciation</div>
+  <button onclick="speakEN()">🔊 English</button>
+</div>
 
 <script>
-/* ===== 辞書（壊れない完全構造） ===== */
+// 子ども向け・固定表示辞書（ここにある単語だけ表示される）
 const dictionary = {
-  apple:{jp:"りんご",hira:"りんご"},
-  ant:{jp:"あり",hira:"あり"},
-  air:{jp:"空気",hira:"くうき"},
-  animal:{jp:"動物",hira:"どうぶつ"},
-  answer:{jp:"答え",hira:"こたえ"},
-  arm:{jp:"腕",hira:"うで"},
-  baby:{jp:"赤ちゃん",hira:"あかちゃん"},
-  back:{jp:"背中",hira:"せなか"},
-  ball:{jp:"ボール",hira:"ぼーる"},
-  banana:{jp:"バナナ",hira:"ばなな"},
-  bear:{jp:"くま",hira:"くま"},
-  bed:{jp:"ベッド",hira:"べっど"},
-  bird:{jp:"鳥",hira:"とり"},
-  black:{jp:"黒",hira:"くろ"},
-  blue:{jp:"青",hira:"あお"},
-  book:{jp:"本",hira:"ほん"},
-  boy:{jp:"男の子",hira:"おとこのこ"},
-  bread:{jp:"パン",hira:"ぱん"},
-  cat:{jp:"ねこ",hira:"ねこ"},
-  child:{jp:"子ども",hira:"こども"},
-  dog:{jp:"犬",hira:"いぬ"},
-  egg:{jp:"卵",hira:"たまご"},
-  fish:{jp:"魚",hira:"さかな"},
-  flower:{jp:"花",hira:"はな"},
-  friend:{jp:"友だち",hira:"ともだち"},
-  go:{jp:"行く",hira:"いく"},
-  happy:{jp:"うれしい",hira:"うれしい"},
-  house:{jp:"家",hira:"いえ"},
-  light:{jp:"光",hira:"ひかり"},
-  love:{jp:"愛",hira:"あい"},
-  moon:{jp:"月",hira:"つき"},
-  night:{jp:"夜",hira:"よる"},
-  run:{jp:"走る",hira:"はしる"},
-  sky:{jp:"空",hira:"そら"},
-  star:{jp:"星",hira:"ほし"},
-  sun:{jp:"太陽",hira:"たいよう"},
-  tree:{jp:"木",hira:"き"},
-  water:{jp:"水",hira:"みず"},
-  world:{jp:"世界",hira:"せかい"},
-  zoo:{jp:"動物園",hira:"どうぶつえん"}
+  apple:{jp:"りんご", hira:"りんご"},
+  dog:{jp:"いぬ", hira:"いぬ"},
+  cat:{jp:"ねこ", hira:"ねこ"},
+  monster:{jp:"モンスター", hira:"もんすたー"},
+  forest:{jp:"森", hira:"もり"},
+  light:{jp:"光", hira:"ひかり"},
+  dark:{jp:"暗やみ", hira:"くらやみ"},
+  hero:{jp:"英雄", hira:"えいゆう"},
+  child:{jp:"子ども", hira:"こども"}
 };
 
-/* ===== 翻訳処理 ===== */
 function process(){
-  const t = eng.value.toLowerCase().trim();
-  if(dictionary[t]){
-    jp.textContent = dictionary[t].jp;
-    hira.textContent = dictionary[t].hira;
+  const text = eng.value.toLowerCase().trim();
+
+  if(!text){
+    jp.innerText = "—";
+    hira.innerText = "—";
+    return;
+  }
+
+  if(dictionary[text]){
+    jp.innerText = dictionary[text].jp;
+    hira.innerText = dictionary[text].hira;
   }else{
-    jp.textContent = "—";
-    hira.textContent = "—";
+    // ★ 問題の原因だった文言は完全削除 ★
+    jp.innerText = "—";
+    hira.innerText = "—";
   }
 }
 
-/* ===== 単語数カウント（NaNにならない） ===== */
-count.textContent = Object.keys(dictionary).length;
+function speakEN(){
+  if(!eng.value) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(eng.value);
+  u.lang = "en-US";
+  u.rate = 0.6;
+  u.pitch = 1.2;
+  speechSynthesis.speak(u);
+}
+
+function speakJP(){
+  if(jp.innerText === "—") return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(jp.innerText);
+  u.lang = "ja-JP";
+  u.rate = 0.6;
+  speechSynthesis.speak(u);
+}
+
+function speakHira(){
+  if(hira.innerText === "—") return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(hira.innerText);
+  u.lang = "ja-JP";
+  u.rate = 0.5;
+  speechSynthesis.speak(u);
+}
 </script>
 
 </body>
