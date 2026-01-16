@@ -6,21 +6,67 @@
 <title>Adjective Game Hub</title>
 
 <style>
-body{font-family:system-ui,sans-serif;background:#f0f8ff;padding:20px}
-h1{text-align:center}
-.top-menu{text-align:center;margin-bottom:15px}
-.back-btn{padding:10px 18px;font-size:15px;border-radius:20px;cursor:pointer}
-.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:15px}
-.tab{flex:1;padding:10px;text-align:center;background:#ddd;border-radius:8px;cursor:pointer}
-.tab.active{background:#87ceeb;font-weight:bold}
-.game{display:none;background:#fff;padding:15px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.15)}
-.game.active{display:block}
-.word-box{font-size:26px;font-weight:bold;margin:15px 0}
-button{padding:10px 16px;font-size:16px;margin:5px;border-radius:8px;cursor:pointer}
-.score{font-weight:bold;margin-top:8px}
-.feedback{font-size:18px;font-weight:bold;min-height:22px}
-.correct{color:#2e8b57}
-.wrong{color:#cc0000}
+body{
+  font-family:system-ui,sans-serif;
+  background:#f0f8ff;
+  padding:20px;
+}
+h1{text-align:center;}
+.tabs{
+  display:flex;
+  flex-wrap:wrap;
+  margin-bottom:15px;
+}
+.tab{
+  flex:1;
+  padding:10px;
+  margin:2px;
+  background:#ddd;
+  border-radius:6px;
+  text-align:center;
+  cursor:pointer;
+}
+.tab.active{
+  background:#87ceeb;
+  font-weight:bold;
+}
+.game{display:none;}
+.game.active{display:block;}
+.word-box{
+  font-size:22px;
+  font-weight:bold;
+  margin:15px 0;
+}
+button{
+  padding:10px 16px;
+  font-size:16px;
+  margin:5px;
+  border-radius:6px;
+  cursor:pointer;
+}
+.score{
+  margin-top:10px;
+  font-weight:bold;
+}
+.feedback{
+  margin-top:8px;
+  font-size:18px;
+  min-height:24px;
+}
+.correct{color:#2e8b57;}
+.wrong{color:#cc0000;}
+.menu-btn{
+  margin-top:20px;
+  background:#555;
+  color:white;
+}
+span.word{
+  padding:6px;
+  margin:3px;
+  border:1px solid #ccc;
+  display:inline-block;
+  cursor:pointer;
+}
 </style>
 </head>
 
@@ -28,105 +74,174 @@ button{padding:10px 16px;font-size:16px;margin:5px;border-radius:8px;cursor:poin
 
 <h1>Adjective Games</h1>
 
-<div class="top-menu">
-  <button class="back-btn" onclick="location.href='index.html'">⬅ Back to Menu</button>
-</div>
-
 <div class="tabs">
-  <div class="tab active" data-game="game1">1. Judge</div>
-  <div class="tab" data-game="game5">5. Speed</div>
+  <div class="tab active" data-game="g1">1 Judge</div>
+  <div class="tab" data-game="g2">2 Classify</div>
+  <div class="tab" data-game="g3">3 Find</div>
+  <div class="tab" data-game="g4">4 Fill</div>
+  <div class="tab" data-game="g5">5 Speed</div>
 </div>
 
-<!-- GAME 1 -->
-<div id="game1" class="game active">
-  <h2>Adjective or Not?</h2>
-  <div id="word1" class="word-box"></div>
+<!-- Game 1 -->
+<div id="g1" class="game active">
+  <h2>Is it an adjective?</h2>
+  <div class="word-box" id="w1"></div>
   <button onclick="check1(true)">Adjective</button>
   <button onclick="check1(false)">Not Adjective</button>
-  <div id="feedback1" class="feedback"></div>
-  <div id="score1" class="score">Score: 0</div>
+  <div id="f1" class="feedback"></div>
+  <div id="s1" class="score">Score: 0</div>
+  <button class="menu-btn" onclick="goMenu()">Menu</button>
 </div>
 
-<!-- GAME 5 -->
-<div id="game5" class="game">
-  <h2>Adjective Speed Game</h2>
-  <div id="word5" class="word-box"></div>
+<!-- Game 3 -->
+<div id="g3" class="game">
+  <h2>Tap the adjective</h2>
+  <div id="sent3"></div>
+  <div id="s3" class="score">Score: 0</div>
+  <button class="menu-btn" onclick="goMenu()">Menu</button>
+</div>
+
+<!-- Game 4 -->
+<div id="g4" class="game">
+  <h2>Choose the correct adjective</h2>
+  <div id="sent4"></div>
+  <div id="opts4"></div>
+  <div id="s4" class="score">Score: 0</div>
+  <button class="menu-btn" onclick="goMenu()">Menu</button>
+</div>
+
+<!-- Game 5 -->
+<div id="g5" class="game">
+  <h2>Speed Judge</h2>
+  <div class="word-box" id="w5"></div>
   <button onclick="check5(true)">Adjective</button>
   <button onclick="check5(false)">Not Adjective</button>
-  <div id="feedback5" class="feedback"></div>
-  <div id="score5" class="score">Score: 0</div>
+  <div id="f5" class="feedback"></div>
+  <div id="s5" class="score">Score: 0</div>
+  <button class="menu-btn" onclick="goMenu()">Menu</button>
 </div>
 
 <script>
-/* ===== Voice (FIXED) ===== */
-function speak(text){
-  speechSynthesis.cancel();   // ← ★重要：初回停止バグ防止
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "en-US";
-  speechSynthesis.speak(u);
-}
+// ---------- 共通 ----------
+const speak = t => {
+  speechSynthesis.cancel();
+  speechSynthesis.speak(new SpeechSynthesisUtterance(t));
+};
 
-/* Tabs */
 document.querySelectorAll('.tab').forEach(tab=>{
-  tab.onclick=()=>{
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.game').forEach(g=>g.classList.remove('active'));
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab,.game').forEach(e=>e.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById(tab.dataset.game).classList.add('active');
-  };
+  });
 });
 
-/* WORD POOL */
-const wordPool=[
-["ancient",1],["brave",1],["curious",1],["dangerous",1],["eager",1],
-["famous",1],["generous",1],["honest",1],["important",1],["joyful",1],
-["kind",1],["mysterious",1],["valuable",1],["wise",1],["confident",1],
-["discover",0],["explain",0],["arrive",0],["decide",0],["protect",0],
-["history",0],["science",0],["village",0],["computer",0],["mountain",0]
-].map(w=>({w:w[0],a:!!w[1]}));
+function goMenu(){
+  document.querySelectorAll('.game').forEach(g=>g.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.tab').classList.add('active');
+  document.getElementById('g1').classList.add('active');
+}
 
-/* ===== GAME 1 (FIXED) ===== */
-let s1=0,c1;
+// ---------- 単語（EFL 小学生） ----------
+const words=[
+{w:"big",a:true},{w:"small",a:true},{w:"fast",a:true},{w:"slow",a:true},
+{w:"clean",a:true},{w:"dirty",a:true},{w:"happy",a:true},{w:"sad",a:true},
+{w:"angry",a:true},{w:"tired",a:true},{w:"kind",a:true},{w:"friendly",a:true},
+{w:"shy",a:true},{w:"brave",a:true},{w:"easy",a:true},{w:"difficult",a:true},
+{w:"early",a:true},{w:"late",a:true},{w:"hot",a:true},{w:"cold",a:true},
+{w:"full",a:true},{w:"empty",a:true},{w:"right",a:true},{w:"wrong",a:true},
+{w:"run",a:false},{w:"eat",a:false},{w:"jump",a:false},{w:"teacher",a:false},
+{w:"student",a:false},{w:"school",a:false},{w:"book",a:false},{w:"apple",a:false},
+{w:"quickly",a:false},{w:"and",a:false},{w:"because",a:false}
+];
+
+// ---------- Game1 ----------
+let i1=0,s1=0;
 function next1(){
-  c1 = wordPool[Math.floor(Math.random()*wordPool.length)];
-  word1.textContent = c1.w;
+  i1=Math.floor(Math.random()*words.length);
+  w1.textContent=words[i1].w;
 }
 function check1(ans){
-  const ok = ans === c1.a;
-  feedback1.textContent = ok ? "✅ Correct!" : "❌ Wrong!";
-  feedback1.className = "feedback " + (ok ? "correct" : "wrong");
-  speak(ok ? "Correct" : "Wrong");
-  if(ok) s1++;
-  score1.textContent = "Score: " + s1;
-
-  setTimeout(()=>{
-    feedback1.textContent="";
-    next1();                  // ← ★必ず次へ
-  },700);
+  const ok=ans===words[i1].a;
+  f1.textContent=ok?"✅ Correct":"❌ Wrong";
+  f1.className="feedback "+(ok?"correct":"wrong");
+  speak(ok?"Correct":"Wrong");
+  if(ok)s1++;
+  s1.textContent="Score: "+s1;
+  setTimeout(next1,600);
 }
 next1();
 
-/* ===== GAME 5 (SAFE) ===== */
-let s5=0,c5;
+// ---------- Game3 ----------
+let s3=0;
+const sents3=[
+{text:"The happy dog is big.",adj:["happy","big"]},
+{text:"She feels tired today.",adj:["tired"]},
+{text:"It is a clean room.",adj:["clean"]}
+];
+function next3(){
+  const o=sents3[Math.floor(Math.random()*sents3.length)];
+  sent3.innerHTML="";
+  o.text.split(" ").forEach(w=>{
+    const c=w.replace(/[^a-z]/gi,"");
+    const sp=document.createElement("span");
+    sp.className="word";
+    sp.textContent=w;
+    sp.onclick=()=>{
+      const ok=o.adj.includes(c);
+      sp.style.background=ok?"#90ee90":"#ff7f7f";
+      speak(ok?"Correct":"Wrong");
+      if(ok)s3++;
+      s3.textContent="Score: "+s3;
+      setTimeout(next3,700);
+    };
+    sent3.appendChild(sp);
+  });
+}
+next3();
+
+// ---------- Game4 ----------
+let s4=0;
+const sents4=[
+{text:"This is a ___ apple.",a:"red",o:["red","run","eat"]},
+{text:"She has a ___ dog.",a:"big",o:["big","jump","book"]}
+];
+function next4(){
+  const q=sents4[Math.floor(Math.random()*sents4.length)];
+  sent4.textContent=q.text;
+  opts4.innerHTML="";
+  q.o.forEach(x=>{
+    const b=document.createElement("button");
+    b.textContent=x;
+    b.onclick=()=>{
+      const ok=x===q.a;
+      speak(ok?"Correct":"Wrong");
+      if(ok)s4++;
+      s4.textContent="Score: "+s4;
+      setTimeout(next4,700);
+    };
+    opts4.appendChild(b);
+  });
+}
+next4();
+
+// ---------- Game5 ----------
+let i5=0,s5=0;
 function next5(){
-  c5 = wordPool[Math.floor(Math.random()*wordPool.length)];
-  word5.textContent = c5.w;
+  i5=Math.floor(Math.random()*words.length);
+  w5.textContent=words[i5].w;
 }
 function check5(ans){
-  const ok = ans === c5.a;
-  feedback5.textContent = ok ? "✅ Correct!" : "❌ Wrong!";
-  feedback5.className = "feedback " + (ok ? "correct" : "wrong");
-  speak(ok ? "Correct" : "Wrong");
-  if(ok) s5++;
-  score5.textContent = "Score: " + s5;
-
-  setTimeout(()=>{
-    feedback5.textContent="";
-    next5();
-  },600);
+  const ok=ans===words[i5].a;
+  f5.textContent=ok?"✅ Correct":"❌ Wrong";
+  f5.className="feedback "+(ok?"correct":"wrong");
+  speak(ok?"Correct":"Wrong");
+  if(ok)s5++;
+  s5.textContent="Score: "+s5;
+  setTimeout(next5,400);
 }
 next5();
 </script>
-
 </body>
 </html>
