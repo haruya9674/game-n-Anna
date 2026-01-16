@@ -16,16 +16,8 @@ body{
     linear-gradient(180deg, #fff, #f2f2f2);
 }
 
-h1{
-  font-size:26px;
-  margin-bottom:6px;
-}
-
-.sub{
-  font-size:14px;
-  color:#666;
-  margin-bottom:20px;
-}
+h1{ font-size:26px; margin-bottom:6px; }
+.sub{ font-size:14px; color:#666; margin-bottom:20px; }
 
 .field{
   width:280px;
@@ -62,7 +54,6 @@ h1{
   font-weight:bold;
   margin:14px 0;
 }
-
 .green{ color:#2e7d32; }
 .red{ color:#c62828; }
 
@@ -75,23 +66,17 @@ button{
   box-shadow:0 4px 10px rgba(0,0,0,.2);
 }
 
-#tapBtn:active{
-  transform:scale(0.95);
-}
+#tapBtn:active{ transform:scale(0.95); }
 
 .result{
   font-size:20px;
   margin-top:14px;
   min-height:1.5em;
 }
-
 .success{ color:#2e7d32; font-weight:bold; }
 .fail{ color:#c62828; font-weight:bold; }
 
-.back{
-  display:block;
-  margin-top:14px;
-}
+.back{ display:block; margin-top:14px; }
 </style>
 </head>
 
@@ -107,9 +92,8 @@ button{
 
 <div id="light" class="light green">🟢 GREEN LIGHT</div>
 
-<button id="tapBtn" onclick="move()">TAP / 進む</button>
-<br>
-<button onclick="resetGame()">START / RESET</button>
+<button id="tapBtn">TAP / 進む</button><br>
+<button id="resetBtn">START / RESET</button>
 
 <div id="result" class="result"></div>
 
@@ -117,21 +101,26 @@ button{
 
 <script>
 let pos = 0;
-let state = "green"; // green / red
+let state = "green";
 let timer = null;
 let finished = false;
+
+const player = document.getElementById("player");
+const light = document.getElementById("light");
+const result = document.getElementById("result");
+const tapBtn = document.getElementById("tapBtn");
+const resetBtn = document.getElementById("resetBtn");
 
 function startLight(){
   timer = setInterval(()=>{
     if(finished) return;
     state = Math.random() > 0.5 ? "green" : "red";
-    const l = document.getElementById("light");
     if(state === "green"){
-      l.textContent = "🟢 GREEN LIGHT";
-      l.className = "light green";
+      light.textContent = "🟢 GREEN LIGHT";
+      light.className = "light green";
     }else{
-      l.textContent = "🔴 RED LIGHT";
-      l.className = "light red";
+      light.textContent = "🔴 RED LIGHT";
+      light.className = "light red";
     }
   }, 1200);
 }
@@ -145,7 +134,7 @@ function move(){
   }
 
   pos += 18;
-  document.getElementById("player").style.left = pos + "px";
+  player.style.left = pos + "px";
 
   if(pos >= 250){
     finish(true);
@@ -156,13 +145,12 @@ function finish(success){
   finished = true;
   clearInterval(timer);
 
-  const r = document.getElementById("result");
   if(success){
-    r.textContent = "🎉 SUCCESS! / 成功";
-    r.className = "result success";
+    result.textContent = "🎉 SUCCESS! / 成功";
+    result.className = "result success";
   }else{
-    r.textContent = "💥 FAILED! / 失敗";
-    r.className = "result fail";
+    result.textContent = "💥 FAILED! / 失敗";
+    result.className = "result fail";
   }
 }
 
@@ -171,14 +159,18 @@ function resetGame(){
   pos = 0;
   finished = false;
   state = "green";
-  document.getElementById("player").style.left = "0px";
-  document.getElementById("result").textContent = "";
-  document.getElementById("light").textContent = "🟢 GREEN LIGHT";
-  document.getElementById("light").className = "light green";
+  player.style.left = "0px";
+  result.textContent = "";
+  light.textContent = "🟢 GREEN LIGHT";
+  light.className = "light green";
   startLight();
 }
 
-// start
+/* 🔑 iOSでも確実に動くイベント登録 */
+tapBtn.addEventListener("click", move);
+resetBtn.addEventListener("click", resetGame);
+
+/* start */
 startLight();
 </script>
 
