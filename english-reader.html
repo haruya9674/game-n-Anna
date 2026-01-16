@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>English → Japanese Voice Reader</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  font-family:system-ui,sans-serif;
+  background:linear-gradient(180deg,#f6fbff,#fff6fb);
+  padding:20px;
+  max-width:620px;
+  margin:auto;
+}
+
+h1{
+  text-align:center;
+}
+
+textarea{
+  width:100%;
+  height:120px;
+  font-size:18px;
+  padding:14px;
+  border-radius:14px;
+  border:none;
+  box-shadow:0 4px 10px rgba(0,0,0,.2);
+}
+
+button{
+  margin-top:16px;
+  width:100%;
+  padding:14px;
+  font-size:18px;
+  border:none;
+  border-radius:16px;
+  background:white;
+  box-shadow:0 4px 12px rgba(0,0,0,.25);
+  cursor:pointer;
+}
+
+button:active{
+  transform:scale(0.97);
+}
+
+.result{
+  margin-top:20px;
+  background:white;
+  padding:16px;
+  border-radius:16px;
+  box-shadow:0 4px 12px rgba(0,0,0,.2);
+  line-height:1.7;
+}
+.label{
+  font-size:14px;
+  color:#666;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🔤 English Voice Reader</h1>
+
+<textarea id="input" placeholder="Enter English text here..."></textarea>
+
+<button onclick="start()">▶ Read</button>
+
+<div class="result">
+  <div class="label">🇯🇵 日本語</div>
+  <div id="jp"></div>
+
+  <div class="label">📝 よみかた</div>
+  <div id="kana"></div>
+
+  <div class="label">🇺🇸 English</div>
+  <div id="en"></div>
+</div>
+
+<script>
+function speak(text, lang, rate=0.6, pitch=1.3){
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.lang = lang;
+  msg.rate = rate;
+  msg.pitch = pitch;
+  speechSynthesis.speak(msg);
+  return msg;
+}
+
+// 超簡易翻訳（学習用向け）
+function simpleTranslate(en){
+  const dict = {
+    "hello":"こんにちは",
+    "good morning":"おはよう",
+    "good night":"おやすみ",
+    "thank you":"ありがとう",
+    "i love you":"だいすき",
+    "how are you":"元気ですか"
+  };
+  return dict[en.toLowerCase()] || "（意味を考えてみよう）";
+}
+
+// 超簡易かな変換（学習用）
+function toKana(jp){
+  const kanaMap = {
+    "こんにちは":"こんにちは",
+    "おはよう":"おはよう",
+    "おやすみ":"おやすみ",
+    "ありがとう":"ありがとう",
+    "だいすき":"だいすき",
+    "元気ですか":"げんきですか"
+  };
+  return kanaMap[jp] || jp;
+}
+
+function start(){
+  speechSynthesis.cancel();
+
+  const en = document.getElementById("input").value.trim();
+  if(!en) return;
+
+  const jp = simpleTranslate(en);
+  const kana = toKana(jp);
+
+  document.getElementById("jp").innerText = jp;
+  document.getElementById("kana").innerText = kana;
+  document.getElementById("en").innerText = en;
+
+  const j1 = speak(jp,"ja-JP",0.7,1.2);
+  j1.onend = ()=>{
+    const j2 = speak(kana,"ja-JP",0.6,1.3);
+    j2.onend = ()=>{
+      speak(en,"en-US",0.6,1.4);
+    };
+  };
+}
+</script>
+
+</body>
+</html>
