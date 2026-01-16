@@ -9,6 +9,7 @@
 body{
   font-family:system-ui,sans-serif;
   padding:20px;
+  padding-bottom:140px; /* ★ 余白をしっかり確保 */
   background:linear-gradient(180deg,#fff6fb,#f0fbff);
   max-width:620px;
   margin:auto;
@@ -33,6 +34,7 @@ h1{
   box-shadow:0 6px 14px rgba(0,0,0,.15);
   font-size:18px;
   line-height:1.7;
+  margin-bottom:60px;
 }
 
 .sentence{
@@ -134,16 +136,16 @@ function saveScroll(){
 }
 
 function restoreScroll(){
-  setTimeout(()=>{
+  requestAnimationFrame(()=>{
     window.scrollTo(0, lastScrollY);
-  }, 0);
+  });
 }
 
 function createVoice(text){
   const msg = new SpeechSynthesisUtterance(text);
   msg.lang = "en-US";
-  msg.rate = 0.6;    // ゆっくり
-  msg.pitch = 1.4;  // やさしく・可愛らしく
+  msg.rate = 0.6;
+  msg.pitch = 1.4;
   msg.volume = 1.0;
 
   const voices = speechSynthesis.getVoices();
@@ -151,7 +153,6 @@ function createVoice(text){
     v.lang.startsWith("en") &&
     (v.name.includes("Female") || v.name.includes("Samantha"))
   );
-
   if(soft) msg.voice = soft;
   return msg;
 }
@@ -181,7 +182,6 @@ function readAll(){
   }
 
   readNext();
-  restoreScroll();
 }
 </script>
 
