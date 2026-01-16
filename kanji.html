@@ -48,6 +48,8 @@ button{
   background:white;
   box-shadow:0 4px 10px rgba(0,0,0,.15);
   cursor:pointer;
+  user-select:none;            /* ← 長押し選択防止 */
+  -webkit-user-select:none;
 }
 
 #result{
@@ -119,6 +121,20 @@ const QUIZ = [
 
 let current = 0;
 
+/* ===== 日本語読み上げ（ゆっくり） ===== */
+function speakJapanese(text){
+  if(!("speechSynthesis" in window)) return;
+
+  const uttr = new SpeechSynthesisUtterance(text);
+  uttr.lang = "ja-JP";
+  uttr.rate = 0.7;   // ゆっくり
+  uttr.pitch = 1.0;
+
+  speechSynthesis.cancel();
+  speechSynthesis.speak(uttr);
+}
+/* ===================================== */
+
 function shuffle(a){
   return [...a].sort(()=>Math.random()-0.5);
 }
@@ -126,7 +142,6 @@ function shuffle(a){
 function showQuiz(){
   const q = QUIZ[current];
   document.getElementById("question").textContent = q.en;
-
   document.getElementById("result").textContent = "";
 
   const choices = shuffle([
@@ -136,10 +151,14 @@ function showQuiz(){
 
   const box = document.getElementById("choices");
   box.innerHTML = "";
+
   choices.forEach(k=>{
     const b = document.createElement("button");
     b.textContent = k;
-    b.onclick = ()=>check(k);
+    b.onclick = ()=>{
+      speakJapanese(k);   // ← クリックで日本語読み上げ
+      check(k);
+    };
     box.appendChild(b);
   });
 }
