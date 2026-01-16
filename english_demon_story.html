@@ -9,6 +9,7 @@
 body{
   font-family:system-ui,sans-serif;
   padding:20px;
+  padding-bottom:160px; /* ★ スクロール戻り防止 */
   background:linear-gradient(180deg,#fff6fb,#f0fbff);
   max-width:620px;
   margin:auto;
@@ -57,6 +58,11 @@ input{
   margin-top:6px;
 }
 
+.controls{
+  text-align:center;
+  margin-top:20px;
+}
+
 button,a{
   display:inline-block;
   margin:6px;
@@ -91,9 +97,9 @@ With a brave heart and shaking hands, the child took one step forward.
 That was the moment the long journey began.
 </div>
 
-<!-- 🔊 全文読み上げ -->
-<div style="text-align:center;margin-top:14px;">
+<div class="controls">
   <button onclick="readAll()">🔊 Read All</button>
+  <a href="story2.html">Next Story →</a>
 </div>
 
 <div class="card">
@@ -135,7 +141,7 @@ heart:{jp:"心",hira:"こころ"},
 journey:{jp:"旅",hira:"たび"}
 };
 
-/* ===== 単語タップ化 ===== */
+/* ===== 単語タップ ===== */
 const storyEl=document.getElementById("story");
 const originalText=storyEl.innerText;
 
@@ -152,7 +158,7 @@ function selectWord(w){
   speakEN();
 }
 
-/* ===== Dictionary Logic ===== */
+/* ===== Dictionary ===== */
 function miniProcess(){
   const w=miniEng.value.toLowerCase().trim();
   if(dict[w]){
@@ -165,26 +171,38 @@ function miniProcess(){
 }
 
 /* ===== Speech ===== */
+function gentleEN(text){
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang="en-US";
+  u.rate=0.5;
+  u.pitch=1.3;
+
+  const voices=speechSynthesis.getVoices();
+  const soft=voices.find(v=>v.lang.startsWith("en") && v.name.includes("Female"));
+  if(soft) u.voice=soft;
+
+  return u;
+}
+
 function speakEN(){
   if(!miniEng.value) return;
-  const u=new SpeechSynthesisUtterance(miniEng.value);
-  u.lang="en-US";
-  speechSynthesis.speak(u);
+  speechSynthesis.cancel();
+  speechSynthesis.speak(gentleEN(miniEng.value));
 }
 
 function speakJP(t){
   if(t==="—") return;
   const u=new SpeechSynthesisUtterance(t);
   u.lang="ja-JP";
+  u.rate=0.5;
+  u.pitch=1.2;
+  speechSynthesis.cancel();
   speechSynthesis.speak(u);
 }
 
 function readAll(){
   speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(originalText);
-  u.lang="en-US";
-  u.rate=0.6;
-  speechSynthesis.speak(u);
+  speechSynthesis.speak(gentleEN(originalText));
 }
 </script>
 
