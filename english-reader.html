@@ -2,138 +2,182 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>English → Japanese Voice Reader</title>
+<title>English Reader</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
   font-family:system-ui,sans-serif;
-  background:linear-gradient(180deg,#f6fbff,#fff6fb);
   padding:20px;
-  max-width:620px;
+  background:linear-gradient(180deg,#fff6fb,#f0fbff);
+  max-width:640px;
   margin:auto;
 }
 
 h1{
   text-align:center;
+  margin-bottom:12px;
 }
 
-textarea{
+input{
   width:100%;
-  height:120px;
-  font-size:18px;
   padding:14px;
+  font-size:18px;
   border-radius:14px;
-  border:none;
-  box-shadow:0 4px 10px rgba(0,0,0,.2);
+  border:1px solid #ccc;
+  margin-bottom:14px;
 }
 
-button{
-  margin-top:16px;
-  width:100%;
-  padding:14px;
-  font-size:18px;
-  border:none;
-  border-radius:16px;
+.card{
   background:white;
-  box-shadow:0 4px 12px rgba(0,0,0,.25);
+  padding:16px;
+  border-radius:18px;
+  box-shadow:0 6px 14px rgba(0,0,0,.15);
+  margin-bottom:14px;
+}
+
+.label{
+  font-size:13px;
+  color:#666;
+  margin-bottom:6px;
+}
+
+.text{
+  font-size:20px;
+}
+
+.hiragana span{
+  display:inline-block;
+  margin:4px;
+  padding:6px 10px;
+  background:#fff0f6;
+  border-radius:10px;
   cursor:pointer;
+  font-size:20px;
+}
+
+button,a{
+  padding:12px 18px;
+  border:none;
+  border-radius:14px;
+  font-size:16px;
+  background:white;
+  box-shadow:0 4px 10px rgba(0,0,0,.2);
+  cursor:pointer;
+  margin:6px;
+  text-decoration:none;
+  color:#333;
 }
 
 button:active{
-  transform:scale(0.97);
-}
-
-.result{
-  margin-top:20px;
-  background:white;
-  padding:16px;
-  border-radius:16px;
-  box-shadow:0 4px 12px rgba(0,0,0,.2);
-  line-height:1.7;
-}
-.label{
-  font-size:14px;
-  color:#666;
+  transform:scale(0.96);
 }
 </style>
 </head>
 
 <body>
 
-<h1>🔤 English Voice Reader</h1>
+<a href="index.html">← Back to Menu</a>
 
-<textarea id="input" placeholder="Enter English text here..."></textarea>
+<h1>🔤 English Reader</h1>
 
-<button onclick="start()">▶ Read</button>
+<input id="eng" placeholder="Type English here…" oninput="process()">
 
-<div class="result">
-  <div class="label">🇯🇵 日本語</div>
-  <div id="jp"></div>
+<div class="card">
+  <div class="label">Japanese</div>
+  <div class="text" id="jp">—</div>
+  <button onclick="speakJP()">🔊 日本語</button>
+</div>
 
-  <div class="label">📝 よみかた</div>
-  <div id="kana"></div>
+<div class="card">
+  <div class="label">Reading (Hiragana)</div>
+  <div class="hiragana" id="hira">—</div>
+</div>
 
-  <div class="label">🇺🇸 English</div>
-  <div id="en"></div>
+<div class="card">
+  <div class="label">English Pronunciation</div>
+  <button onclick="speakEN()">🔊 English</button>
 </div>
 
 <script>
-function speak(text, lang, rate=0.6, pitch=1.3){
-  const msg = new SpeechSynthesisUtterance(text);
-  msg.lang = lang;
-  msg.rate = rate;
-  msg.pitch = pitch;
-  speechSynthesis.speak(msg);
-  return msg;
-}
+// 超シンプル子供向け辞書（必要ならどんどん増やせる）
+const dictionary = {
+  "apple":"りんご",
+  "dog":"いぬ",
+  "cat":"ねこ",
+  "monster":"モンスター",
+  "forest":"もり",
+  "light":"ひかり",
+  "dark":"くらやみ",
+  "hero":"えいゆう",
+  "child":"こども"
+};
 
-// 超簡易翻訳（学習用向け）
-function simpleTranslate(en){
-  const dict = {
-    "hello":"こんにちは",
-    "good morning":"おはよう",
-    "good night":"おやすみ",
-    "thank you":"ありがとう",
-    "i love you":"だいすき",
-    "how are you":"元気ですか"
+// ひらがな変換（最低限・学習用）
+function toHiragana(jp){
+  const map = {
+    "り":"り","ん":"ん","ご":"ご",
+    "い":"い","ぬ":"ぬ",
+    "ね":"ね","こ":"こ",
+    "も":"も","り":"り",
+    "ひ":"ひ","か":"か","り":"り",
+    "く":"く","ら":"ら","や":"や","み":"み",
+    "え":"え","い":"い","ゆ":"ゆ","う":"う",
+    "こ":"こ","ど":"ど","も":"も"
   };
-  return dict[en.toLowerCase()] || "（意味を考えてみよう）";
+  return jp.split("").map(c=>map[c]||c).join("");
 }
 
-// 超簡易かな変換（学習用）
-function toKana(jp){
-  const kanaMap = {
-    "こんにちは":"こんにちは",
-    "おはよう":"おはよう",
-    "おやすみ":"おやすみ",
-    "ありがとう":"ありがとう",
-    "だいすき":"だいすき",
-    "元気ですか":"げんきですか"
-  };
-  return kanaMap[jp] || jp;
-}
+function process(){
+  const eng = document.getElementById("eng").value.toLowerCase().trim();
+  if(!eng){
+    document.getElementById("jp").innerText="—";
+    document.getElementById("hira").innerHTML="—";
+    return;
+  }
 
-function start(){
-  speechSynthesis.cancel();
-
-  const en = document.getElementById("input").value.trim();
-  if(!en) return;
-
-  const jp = simpleTranslate(en);
-  const kana = toKana(jp);
-
+  const jp = dictionary[eng] || "（日本語の意味）";
   document.getElementById("jp").innerText = jp;
-  document.getElementById("kana").innerText = kana;
-  document.getElementById("en").innerText = en;
 
-  const j1 = speak(jp,"ja-JP",0.7,1.2);
-  j1.onend = ()=>{
-    const j2 = speak(kana,"ja-JP",0.6,1.3);
-    j2.onend = ()=>{
-      speak(en,"en-US",0.6,1.4);
-    };
-  };
+  const hira = toHiragana(jp);
+  const container = document.getElementById("hira");
+  container.innerHTML = "";
+
+  hira.split("").forEach(ch=>{
+    const span = document.createElement("span");
+    span.innerText = ch;
+    span.onclick = ()=> speakHira(ch);
+    container.appendChild(span);
+  });
+}
+
+function speakEN(){
+  const t = document.getElementById("eng").value;
+  if(!t) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(t);
+  u.lang="en-US";
+  u.rate=0.6;
+  u.pitch=1.2;
+  speechSynthesis.speak(u);
+}
+
+function speakJP(){
+  const t = document.getElementById("jp").innerText;
+  if(!t || t==="—") return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(t);
+  u.lang="ja-JP";
+  u.rate=0.6;
+  speechSynthesis.speak(u);
+}
+
+function speakHira(ch){
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(ch);
+  u.lang="ja-JP";
+  u.rate=0.5;
+  speechSynthesis.speak(u);
 }
 </script>
 
