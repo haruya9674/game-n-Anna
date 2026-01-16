@@ -10,7 +10,7 @@ body{
   font-family:system-ui,sans-serif;
   padding:20px;
   background:linear-gradient(180deg,#fff6fb,#f0fbff);
-  max-width:600px;
+  max-width:620px;
   margin:auto;
 }
 
@@ -32,12 +32,22 @@ h1{
   border-radius:18px;
   box-shadow:0 6px 14px rgba(0,0,0,.15);
   font-size:18px;
-  line-height:1.6;
+  line-height:1.7;
+}
+
+.sentence{
+  margin-bottom:10px;
+  cursor:pointer;
+}
+
+.sentence:active{
+  background:#fff0f6;
+  border-radius:8px;
 }
 
 .controls{
   text-align:center;
-  margin-top:16px;
+  margin-top:18px;
 }
 
 button,a{
@@ -67,47 +77,82 @@ button:active{
 <h1>📖 Story 1</h1>
 <div class="sub">The Little Demon Hunter</div>
 
-<div class="story" id="storyText">
-Long ago, in a quiet village, there lived a small and kind child.
-The village was peaceful, but deep in the forest, dark demons were waking up.
+<div class="story" id="story">
 
-One night, the moon glowed bright red.
-A tiny demon appeared near the village gate.
-It was weak, but it scared everyone.
+  <div class="sentence" onclick="speak(this)">
+    Long ago, in a quiet village, there lived a small and kind child.
+  </div>
 
-The child was afraid, but did not run away.
-With a brave heart and shaking hands, the child took one step forward.
+  <div class="sentence" onclick="speak(this)">
+    The village was peaceful, and people felt safe every day.
+  </div>
 
-That was the moment the journey began.
+  <div class="sentence" onclick="speak(this)">
+    But deep inside the dark forest, something evil was waking up.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    One night, the moon glowed bright red in the sky.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    A tiny demon appeared near the village gate.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    The demon was weak, but it frightened everyone.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    The child felt scared, but did not run away.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    With a brave heart and shaking hands, the child took one step forward.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    That was the moment the long journey began.
+  </div>
+
 </div>
 
 <div class="controls">
-  <button onclick="speakEnglish()">🔊 Read Aloud</button>
+  <button onclick="readAll()">🔊 Read All</button>
   <a href="story2.html">Next Story →</a>
 </div>
 
 <script>
-function speakEnglish(){
-  const text = document.getElementById("storyText").innerText;
+function createVoice(text){
   const msg = new SpeechSynthesisUtterance(text);
-
   msg.lang = "en-US";
-  msg.rate = 0.75;      // ゆっくり
-  msg.pitch = 1.4;     // かわいく
+  msg.rate = 0.6;    // ← さらにゆっくり
+  msg.pitch = 1.4;  // かわいく
   msg.volume = 1.0;
 
   const voices = speechSynthesis.getVoices();
-  const softVoice = voices.find(v =>
+  const soft = voices.find(v =>
     v.lang.startsWith("en") &&
     (v.name.includes("Female") || v.name.includes("Samantha"))
   );
 
-  if(softVoice){
-    msg.voice = softVoice;
-  }
+  if(soft) msg.voice = soft;
+  return msg;
+}
 
+function speak(el){
   speechSynthesis.cancel();
-  speechSynthesis.speak(msg);
+  speechSynthesis.speak(createVoice(el.innerText));
+}
+
+function readAll(){
+  speechSynthesis.cancel();
+  const sentences = document.querySelectorAll(".sentence");
+  sentences.forEach((s,i)=>{
+    const msg = createVoice(s.innerText);
+    msg.startTime = i * 10;
+    speechSynthesis.speak(msg);
+  });
 }
 </script>
 
