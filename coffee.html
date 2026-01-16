@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* ===== Global ===== */
 *{
   -webkit-user-select:none;
   -moz-user-select:none;
@@ -27,21 +26,15 @@ body{
 }
 
 h1{ font-size:24px; margin-bottom:4px; }
-p{ margin:6px 0; }
 
-/* ===== Mode ===== */
 .mode button{
   padding:8px 14px;
   margin:4px;
   border-radius:10px;
   border:none;
 }
-.active{
-  background:#333;
-  color:white;
-}
+.active{ background:#333; color:white; }
 
-/* ===== Cup ===== */
 .cup{
   width:120px;
   height:160px;
@@ -72,7 +65,6 @@ p{ margin:6px 0; }
   color:red;
 }
 
-/* ===== Buttons ===== */
 button{
   padding:14px 22px;
   font-size:16px;
@@ -84,7 +76,6 @@ button{
 
 #pourBtn:active{ transform:scale(0.95); }
 
-/* ===== Result ===== */
 .success{ color:green; font-weight:bold; }
 .fail{ color:red; font-weight:bold; }
 
@@ -124,20 +115,16 @@ POUR / 注ぐ
 <a href="index.html" class="back">← BACK</a>
 
 <script>
-/* ===== Disable selection (JS safety) ===== */
 document.addEventListener("contextmenu", e=>e.preventDefault());
 document.addEventListener("selectstart", e=>e.preventDefault());
 
-/* ===== Game State ===== */
 let level = 0;
 let timer = null;
 let pouring = false;
 let finished = false;
 let mode = "coffee";
 
-/* ===== Audio (success / fail only) ===== */
 const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-
 function playBeep(freq){
   const o = audioCtx.createOscillator();
   o.frequency.value = freq;
@@ -146,7 +133,6 @@ function playBeep(freq){
   o.stop(audioCtx.currentTime + 0.25);
 }
 
-/* ===== Mode ===== */
 function setMode(m){
   if(pouring) return;
   mode = m;
@@ -156,7 +142,6 @@ function setMode(m){
   resetGame();
 }
 
-/* ===== Reset ===== */
 function resetGame(){
   clearInterval(timer);
   pouring = false;
@@ -167,13 +152,11 @@ function resetGame(){
   document.getElementById("result").className = "";
 }
 
-/* ===== Pour ===== */
 function startPour(){
   if(pouring || finished) return;
   pouring = true;
 
   timer = setInterval(()=>{
-    // Coffee & Beer same speed
     let speed = Math.random()*1.4 + 1.0;
     level += speed;
 
@@ -185,7 +168,6 @@ function startPour(){
   },50);
 }
 
-/* ===== Stop ===== */
 function stopPour(overflow=false){
   if(!pouring) return;
   clearInterval(timer);
@@ -193,15 +175,16 @@ function stopPour(overflow=false){
   finished = true;
 
   const r = document.getElementById("result");
+  const pct = level.toFixed(2);
 
   if(!overflow && level >= 98.9 && level <= 100.09){
-    r.textContent = "🎉 SUCCESS! / 成功";
+    r.textContent = `🎉 SUCCESS! / 成功 (${pct}%)`;
     r.className = "success";
     playBeep(880);
   }else{
     r.textContent = overflow
-      ? "💥 OVERFLOW! / こぼれた"
-      : "❌ FAIL / 失敗";
+      ? `💥 OVERFLOW! / こぼれた (${pct}%)`
+      : `❌ FAIL / 失敗 (${pct}%)`;
     r.className = "fail";
     playBeep(220);
   }
