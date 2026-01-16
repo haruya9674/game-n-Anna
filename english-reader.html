@@ -98,7 +98,7 @@ button:active{
 </div>
 
 <script>
-// 子供向け・壊れない簡易辞書
+// 子ども向け・固定表示辞書（ここにある単語だけ表示される）
 const dictionary = {
   apple:{jp:"りんご", hira:"りんご"},
   dog:{jp:"いぬ", hira:"いぬ"},
@@ -112,22 +112,21 @@ const dictionary = {
 };
 
 function process(){
-  const engText = eng.value.toLowerCase().trim();
+  const text = eng.value.toLowerCase().trim();
 
-  if(!engText){
+  if(!text){
     jp.innerText = "—";
     hira.innerText = "—";
     return;
   }
 
-  if(dictionary[engText]){
-    jp.innerText = dictionary[engText].jp;
-    hira.innerText = dictionary[engText].hira;
+  if(dictionary[text]){
+    jp.innerText = dictionary[text].jp;
+    hira.innerText = dictionary[text].hira;
   }else{
-    // ❌「（日本語の意味）」を出さない
-    // ✅ 自然な日本語とひらがなに変更
-    jp.innerText = "この英語の意味を考えてみよう";
-    hira.innerText = "このえいごのいみをかんがえてみよう";
+    // ★ 問題の原因だった文言は完全削除 ★
+    jp.innerText = "—";
+    hira.innerText = "—";
   }
 }
 
@@ -135,27 +134,27 @@ function speakEN(){
   if(!eng.value) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(eng.value);
-  u.lang="en-US";
-  u.rate=0.6;
-  u.pitch=1.2;
+  u.lang = "en-US";
+  u.rate = 0.6;
+  u.pitch = 1.2;
   speechSynthesis.speak(u);
 }
 
 function speakJP(){
-  if(jp.innerText==="—") return;
+  if(jp.innerText === "—") return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(jp.innerText);
-  u.lang="ja-JP";
-  u.rate=0.6;
+  u.lang = "ja-JP";
+  u.rate = 0.6;
   speechSynthesis.speak(u);
 }
 
 function speakHira(){
-  if(hira.innerText==="—") return;
+  if(hira.innerText === "—") return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(hira.innerText);
-  u.lang="ja-JP";
-  u.rate=0.5;
+  u.lang = "ja-JP";
+  u.rate = 0.5;
   speechSynthesis.speak(u);
 }
 </script>
