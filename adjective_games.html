@@ -13,6 +13,7 @@ body{
   padding:20px;
 }
 h1{margin-bottom:10px}
+
 .tabs{
   display:flex;
   gap:6px;
@@ -29,35 +30,56 @@ h1{margin-bottom:10px}
   background:#87ceeb;
   font-weight:bold;
 }
+
 .section{display:none}
 .section.active{display:block}
 
 .word{
-  font-size:32px;
-  margin:20px 0;
+  font-size:36px;
+  margin:25px 0;
+  font-weight:bold;
 }
-button{
-  font-size:18px;
-  padding:10px 20px;
-  margin:5px;
-  border-radius:8px;
-}
-.result{
+
+/* ===== buttons (検証用と同じ思想) ===== */
+.btn{
+  width:140px;
   font-size:20px;
+  padding:14px 0;
+  margin:10px;
+  border:none;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:pointer;
+}
+.btn-yes{
+  background:#4caf50;
+  color:white;
+}
+.btn-no{
+  background:#f44336;
+  color:white;
+}
+.btn:active{
+  transform:scale(0.95);
+}
+
+.result{
+  font-size:22px;
   margin-top:10px;
-  height:24px;
+  height:26px;
 }
 .score{
   margin-top:10px;
   font-weight:bold;
 }
+
 .list{
   max-width:500px;
   margin:auto;
 }
 .list div{
   background:white;
-  padding:10px;
+  padding:12px;
   margin:6px 0;
   border-radius:6px;
   cursor:pointer;
@@ -79,8 +101,15 @@ button{
 <!-- GAME -->
 <div id="game" class="section active">
   <div class="word" id="gameWord">---</div>
-  <button onclick="answer(true)">Adjective</button>
-  <button onclick="answer(false)">Not Adjective</button>
+
+  <button class="btn btn-yes" onclick="answer(true)">
+    Adjective
+  </button>
+
+  <button class="btn btn-no" onclick="answer(false)">
+    Not Adjective
+  </button>
+
   <div class="result" id="result"></div>
   <div class="score" id="score">Score: 0</div>
 </div>
@@ -98,13 +127,15 @@ button{
 </div>
 
 <script>
-const speak = text => {
+/* ===== speech ===== */
+function speak(text){
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "en-US";
   speechSynthesis.speak(u);
-};
+}
 
+/* ===== tabs ===== */
 function show(id){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -112,22 +143,27 @@ function show(id){
   event.target.classList.add('active');
 }
 
-/* -------- DATA -------- */
+/* ===== DATA (増量済み・EFL向け) ===== */
 const words = [
   ["happy",true],["sad",true],["angry",true],["excited",true],
+  ["friendly",true],["kind",true],["polite",true],["brave",true],
   ["big",true],["small",true],["tall",true],["short",true],
   ["fast",true],["slow",true],["clean",true],["dirty",true],
   ["bright",true],["dark",true],["quiet",true],["loud",true],
   ["safe",true],["dangerous",true],["easy",true],["difficult",true],
-  ["teacher",false],["dog",false],["run",false],["jump",false],
-  ["eat",false],["city",false],["book",false],["music",false],
-  ["play",false],["write",false],["water",false],["car",false],
-  ["think",false],["house",false],["child",false],["school",false]
+  ["strong",true],["weak",true],["early",true],["late",true],
+  ["hot",true],["cold",true],["fresh",true],["old",true],
+  ["teacher",false],["dog",false],["cat",false],["run",false],
+  ["jump",false],["eat",false],["drink",false],["city",false],
+  ["book",false],["music",false],["play",false],["write",false],
+  ["read",false],["water",false],["car",false],["house",false],
+  ["school",false],["child",false],["think",false],["walk",false]
 ];
 
 let score = 0;
 let current = null;
 
+/* ===== game ===== */
 function next(){
   current = words[Math.floor(Math.random()*words.length)];
   document.getElementById("gameWord").textContent = current[0];
@@ -143,7 +179,7 @@ function answer(isAdj){
   setTimeout(next,600);
 }
 
-/* lists */
+/* ===== lists ===== */
 const adjList = document.getElementById("adjList");
 const notList = document.getElementById("notList");
 
