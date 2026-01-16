@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Story 5 – The First Trial</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  font-family:system-ui,sans-serif;
+  padding:20px;
+  background:linear-gradient(180deg,#fff6fb,#f0fbff);
+  max-width:620px;
+  margin:auto;
+}
+
+h1{
+  text-align:center;
+  margin-bottom:6px;
+}
+
+.sub{
+  text-align:center;
+  font-size:14px;
+  color:#666;
+  margin-bottom:20px;
+}
+
+.story{
+  background:white;
+  padding:18px;
+  border-radius:18px;
+  box-shadow:0 6px 14px rgba(0,0,0,.15);
+  font-size:18px;
+  line-height:1.7;
+}
+
+.sentence{
+  margin-bottom:10px;
+  cursor:pointer;
+}
+
+.sentence:active{
+  background:#fff0f6;
+  border-radius:8px;
+}
+
+.controls{
+  text-align:center;
+  margin-top:18px;
+}
+
+button,a{
+  display:inline-block;
+  margin:6px;
+  padding:12px 18px;
+  border:none;
+  border-radius:14px;
+  font-size:16px;
+  background:white;
+  text-decoration:none;
+  color:#333;
+  box-shadow:0 4px 10px rgba(0,0,0,.2);
+  cursor:pointer;
+}
+
+button:active{
+  transform:scale(0.96);
+}
+</style>
+</head>
+
+<body>
+
+<a href="index.html">← Back to Menu</a>
+
+<h1>📖 Story 5</h1>
+<div class="sub">The First Trial</div>
+
+<div class="story" id="story">
+
+  <div class="sentence" onclick="speak(this)">
+    The guardian slowly raised one hand.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    The forest floor began to shake softly.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    Stones moved and formed a narrow path.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    “This is your first trial,” the guardian said gently.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    The path was dark and full of strange sounds.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    The child felt fear but remembered the warm light.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    Step by step, the child walked forward.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    Shadows moved, watching silently.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    The glowing stone shined brighter with each step.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    The first trial had begun.
+  </div>
+
+</div>
+
+<div class="controls">
+  <button onclick="readAll()">🔊 Read All</button>
+  <a href="story6.html">Next Story →</a>
+</div>
+
+<script>
+function createVoice(text){
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "en-US";
+  msg.rate = 0.6;
+  msg.pitch = 1.4;
+  msg.volume = 1.0;
+
+  const voices = speechSynthesis.getVoices();
+  const soft = voices.find(v =>
+    v.lang.startsWith("en") &&
+    (v.name.includes("Female") || v.name.includes("Samantha"))
+  );
+
+  if(soft) msg.voice = soft;
+  return msg;
+}
+
+function speak(el){
+  speechSynthesis.cancel();
+  speechSynthesis.speak(createVoice(el.innerText));
+}
+
+function readAll(){
+  speechSynthesis.cancel();
+  const sentences = document.querySelectorAll(".sentence");
+  sentences.forEach((s,i)=>{
+    const msg = createVoice(s.innerText);
+    msg.startTime = i * 10;
+    speechSynthesis.speak(msg);
+  });
+}
+</script>
+
+</body>
+</html>
