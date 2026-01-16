@@ -1,199 +1,309 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Adjective Game Hub</title>
+
 <style>
-body { font-family: system-ui, sans-serif; padding: 20px; background:#f0f8ff; }
-h1 { text-align: center; }
-.tabs { display:flex; margin-bottom:20px; cursor:pointer; }
-.tab { flex:1; padding:10px; text-align:center; background:#ddd; margin-right:2px; border-radius:5px; }
-.tab.active { background:#87ceeb; font-weight:bold; }
-.game { display:none; }
-.game.active { display:block; }
-button { padding:10px 15px; margin:5px; font-size:16px; cursor:pointer; border-radius:5px; }
-.word-box { margin:10px 0; }
-.score { margin-top:10px; font-weight:bold; }
-.draggable { display:inline-block; padding:10px; margin:5px; background:#fff; border:1px solid #aaa; border-radius:5px; cursor:grab; }
-.dropzone { display:inline-block; padding:10px 20px; margin:5px; background:#eee; border:2px dashed #aaa; border-radius:5px; min-width:80px; text-align:center; }
+body{
+  font-family:system-ui, sans-serif;
+  background:#f0f8ff;
+  padding:20px;
+}
+
+h1{
+  text-align:center;
+  margin-bottom:15px;
+}
+
+.tabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-bottom:20px;
+}
+
+.tab{
+  flex:1;
+  padding:10px;
+  text-align:center;
+  background:#ddd;
+  border-radius:8px;
+  cursor:pointer;
+  user-select:none;
+}
+
+.tab.active{
+  background:#87ceeb;
+  font-weight:bold;
+}
+
+.game{
+  display:none;
+  background:#fff;
+  padding:15px;
+  border-radius:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.15);
+}
+
+.game.active{
+  display:block;
+}
+
+.word-box{
+  font-size:24px;
+  font-weight:bold;
+  margin:15px 0;
+}
+
+button{
+  padding:10px 16px;
+  font-size:16px;
+  margin:5px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.score{
+  margin-top:10px;
+  font-weight:bold;
+}
+
+.feedback{
+  margin-top:8px;
+  font-size:18px;
+  font-weight:bold;
+  min-height:22px;
+}
+
+.correct{ color:#2e8b57; }
+.wrong{ color:#cc0000; }
+
+.word{
+  display:inline-block;
+  padding:6px;
+  margin:3px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.draggable{
+  display:inline-block;
+  padding:8px;
+  margin:5px;
+  border:1px solid #aaa;
+  border-radius:6px;
+  background:#fff;
+  cursor:grab;
+}
+
+.dropzone{
+  display:inline-block;
+  min-width:90px;
+  padding:10px;
+  margin:5px;
+  border:2px dashed #aaa;
+  border-radius:6px;
+  text-align:center;
+}
 </style>
 </head>
+
 <body>
 
 <h1>Adjective Games</h1>
+
 <div class="tabs">
-  <div class="tab active" data-game="game1">1: Adjective or Not</div>
-  <div class="tab" data-game="game2">2: Adjective分類</div>
-  <div class="tab" data-game="game3">3: 文中Adjective</div>
-  <div class="tab" data-game="game4">4: 穴埋め</div>
+  <div class="tab active" data-game="game1">1. Adjective?</div>
+  <div class="tab" data-game="game2">2. Category</div>
+  <div class="tab" data-game="game3">3. Find</div>
+  <div class="tab" data-game="game4">4. Fill</div>
+  <div class="tab" data-game="game5">5. Speed</div>
 </div>
 
-<!-- 1: Adjective or Not -->
+<!-- GAME 1 -->
 <div id="game1" class="game active">
   <h2>Adjective or Not?</h2>
-  <div class="word-box" id="word1">Loading...</div>
+  <div id="word1" class="word-box"></div>
   <button onclick="check1(true)">Adjective</button>
   <button onclick="check1(false)">Not Adjective</button>
-  <div class="score" id="score1">Score: 0</div>
+  <div id="feedback1" class="feedback"></div>
+  <div id="score1" class="score">Score: 0</div>
 </div>
 
-<!-- 2: Adjective分類 -->
+<!-- GAME 2 -->
 <div id="game2" class="game">
-  <h2>Adjective分類</h2>
+  <h2>Adjective Categories</h2>
   <div id="draggables2"></div>
   <div id="dropzones2"></div>
-  <div class="score" id="score2">Score: 0</div>
+  <div id="feedback2" class="feedback"></div>
+  <div id="score2" class="score">Score: 0</div>
 </div>
 
-<!-- 3: 文中Adjective -->
+<!-- GAME 3 -->
 <div id="game3" class="game">
-  <h2>文中からAdjectiveを選ぶ</h2>
+  <h2>Find Adjectives</h2>
   <div id="sentence3"></div>
-  <div class="score" id="score3">Score: 0</div>
+  <div id="feedback3" class="feedback"></div>
+  <div id="score3" class="score">Score: 0</div>
 </div>
 
-<!-- 4: 穴埋め -->
+<!-- GAME 4 -->
 <div id="game4" class="game">
-  <h2>穴埋め</h2>
+  <h2>Fill in the Blank</h2>
   <div id="sentence4"></div>
   <div id="options4"></div>
-  <div class="score" id="score4">Score: 0</div>
+  <div id="feedback4" class="feedback"></div>
+  <div id="score4" class="score">Score: 0</div>
+</div>
+
+<!-- GAME 5 -->
+<div id="game5" class="game">
+  <h2>Adjective Speed Game</h2>
+  <div id="word5" class="word-box"></div>
+  <button onclick="check5(true)">Adjective</button>
+  <button onclick="check5(false)">Not Adjective</button>
+  <div id="feedback5" class="feedback"></div>
+  <div id="score5" class="score">Score: 0</div>
 </div>
 
 <script>
-// ----- タブ切り替え -----
+/* TAB SWITCH */
 document.querySelectorAll('.tab').forEach(tab=>{
-  tab.addEventListener('click', ()=>{
+  tab.onclick=()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     document.querySelectorAll('.game').forEach(g=>g.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById(tab.dataset.game).classList.add('active');
-  });
+  }
 });
 
-// -------- 1: Adjective or Not --------
-const words1 = [
-  {word:"big", adj:true}, {word:"apple", adj:false}, {word:"happy", adj:true}, {word:"run", adj:false},
-  {word:"red", adj:true}, {word:"dog", adj:false}, {word:"clean", adj:true}, {word:"sing", adj:false}
+/* GAME 1 */
+const words1=[
+ {w:"big",a:true},{w:"apple",a:false},{w:"happy",a:true},{w:"run",a:false}
 ];
-let score1 = 0;
-let current1;
-function nextWord1(){
-  current1 = words1[Math.floor(Math.random()*words1.length)];
-  document.getElementById('word1').textContent = current1.word;
+let s1=0,c1;
+function next1(){
+ c1=words1[Math.floor(Math.random()*words1.length)];
+ word1.textContent=c1.w;
 }
 function check1(ans){
-  if(ans === current1.adj) score1++;
-  document.getElementById('score1').textContent = "Score: " + score1;
-  nextWord1();
+ feedback1.className="feedback "+(ans===c1.a?"correct":"wrong");
+ feedback1.textContent=ans===c1.a?"✅ Correct!":"❌ Wrong!";
+ if(ans===c1.a) s1++;
+ score1.textContent="Score: "+s1;
+ setTimeout(()=>{feedback1.textContent="";next1();},700);
 }
-nextWord1();
+next1();
 
-// -------- 2: Adjective分類 --------
-const adj2 = [
-  {word:"big", type:"Size"}, {word:"small", type:"Size"},
-  {word:"red", type:"Color"}, {word:"blue", type:"Color"},
-  {word:"happy", type:"Feeling"}, {word:"sad", type:"Feeling"},
-  {word:"good", type:"Opinion"}, {word:"bad", type:"Opinion"},
-  {word:"clean", type:"Condition"}, {word:"dirty", type:"Condition"}
+/* GAME 2 */
+const adj2=[
+ {w:"big",t:"Size"},{w:"red",t:"Color"},{w:"happy",t:"Feeling"}
 ];
-const types2 = ["Size","Color","Feeling","Opinion","Condition"];
-let score2 = 0;
+const types2=["Size","Color","Feeling"];
+let s2=0;
+adj2.forEach(a=>{
+ let d=document.createElement("div");
+ d.textContent=a.w;
+ d.className="draggable";
+ d.draggable=true;
+ d.dataset.t=a.t;
+ d.ondragstart=e=>e.dataTransfer.setData("text",a.t);
+ draggables2.appendChild(d);
+});
+types2.forEach(t=>{
+ let z=document.createElement("div");
+ z.textContent=t;
+ z.className="dropzone";
+ z.ondragover=e=>e.preventDefault();
+ z.ondrop=e=>{
+   e.preventDefault();
+   if(e.dataTransfer.getData("text")===t){
+     s2++; feedback2.textContent="✅ Correct!";
+     feedback2.className="feedback correct";
+   }else{
+     feedback2.textContent="❌ Wrong!";
+     feedback2.className="feedback wrong";
+   }
+   score2.textContent="Score: "+s2;
+ };
+ dropzones2.appendChild(z);
+});
 
-function init2(){
-  const dragDiv = document.getElementById('draggables2');
-  dragDiv.innerHTML = '';
-  adj2.forEach(a=>{
-    const d = document.createElement('div');
-    d.textContent = a.word;
-    d.className = 'draggable';
-    d.draggable = true;
-    d.dataset.type = a.type;
-    d.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text', a.type); e.target.style.opacity=0.5; });
-    d.addEventListener('dragend', e=>{ e.target.style.opacity=1; });
-    dragDiv.appendChild(d);
-  });
-
-  const dropDiv = document.getElementById('dropzones2');
-  dropDiv.innerHTML = '';
-  types2.forEach(t=>{
-    const dz = document.createElement('div');
-    dz.textContent = t;
-    dz.className = 'dropzone';
-    dz.addEventListener('dragover', e=>e.preventDefault());
-    dz.addEventListener('drop', e=>{
-      e.preventDefault();
-      const type = e.dataTransfer.getData('text');
-      if(type===t){ score2++; e.target.style.background='#90ee90'; setTimeout(()=>e.target.style.background='#eee',500); }
-      document.getElementById('score2').textContent="Score: "+score2;
-    });
-    dropDiv.appendChild(dz);
-  });
-}
-init2();
-
-// -------- 3: 文中Adjective --------
-const sentences3 = [
-  {text:"The happy dog is big.", adjectives:["happy","big"]},
-  {text:"A small red apple.", adjectives:["small","red"]},
-  {text:"She feels sad today.", adjectives:["sad"]},
-  {text:"Clean water is important.", adjectives:["Clean"]}
+/* GAME 3 */
+const sents3=[
+ {t:"The happy dog is big.",a:["happy","big"]}
 ];
-let score3 = 0;
-let current3;
-
-function next3(){
-  current3 = sentences3[Math.floor(Math.random()*sentences3.length)];
-  const sentenceDiv = document.getElementById('sentence3');
-  sentenceDiv.innerHTML = '';
-  current3.text.split(' ').forEach(word=>{
-    const w = document.createElement('span');
-    w.textContent = word;
-    w.style.padding='5px';
-    w.style.cursor='pointer';
-    w.style.border='1px solid #ccc';
-    w.style.marginRight='3px';
-    if(current3.adjectives.includes(word.replace(/[^a-zA-Z]/g,''))){
-      w.onclick = ()=>{
-        score3++; w.style.background='#90ee90';
-        document.getElementById('score3').textContent="Score: "+score3;
-      }
-    } else {
-      w.onclick = ()=>{ w.style.background='#ff7f7f'; }
+let s3=0;
+function load3(){
+ sentence3.innerHTML="";
+ sents3[0].t.split(" ").forEach(w=>{
+  let clean=w.replace(/[^a-z]/gi,"");
+  let sp=document.createElement("span");
+  sp.textContent=w;
+  sp.className="word";
+  sp.onclick=()=>{
+    if(sents3[0].a.includes(clean)){
+      s3++; feedback3.textContent="✅ Correct!";
+      feedback3.className="feedback correct";
+      sp.style.background="#90ee90";
+    }else{
+      feedback3.textContent="❌ Wrong!";
+      feedback3.className="feedback wrong";
+      sp.style.background="#ffb3b3";
     }
-    sentenceDiv.appendChild(w);
-  });
+    score3.textContent="Score: "+s3;
+  };
+  sentence3.appendChild(sp);
+ });
 }
-next3();
-document.getElementById('sentence3').addEventListener('click', next3);
+load3();
 
-// -------- 4: 穴埋め --------
-const sentences4 = [
-  {text:"This is a ___ apple.", answer:"red", options:["red","run","quickly"]},
-  {text:"She has a ___ dog.", answer:"big", options:["big","sing","slow"]},
-  {text:"It is a ___ day.", answer:"happy", options:["happy","clean","jump"]}
+/* GAME 4 */
+const s4=[
+ {t:"This is a ___ apple.",a:"red",o:["red","run","fast"]}
 ];
-let score4 = 0;
-let current4;
-function next4(){
-  current4 = sentences4[Math.floor(Math.random()*sentences4.length)];
-  document.getElementById('sentence4').textContent=current4.text;
-  const optsDiv = document.getElementById('options4');
-  optsDiv.innerHTML = '';
-  current4.options.forEach(opt=>{
-    const b = document.createElement('button');
-    b.textContent=opt;
-    b.onclick=()=>{
-      if(opt===current4.answer){ score4++; b.style.background='#90ee90'; }
-      else{ b.style.background='#ff7f7f'; }
-      document.getElementById('score4').textContent="Score: "+score4;
-      setTimeout(next4,500);
+let s4s=0;
+function load4(){
+ sentence4.textContent=s4[0].t;
+ options4.innerHTML="";
+ s4[0].o.forEach(o=>{
+  let b=document.createElement("button");
+  b.textContent=o;
+  b.onclick=()=>{
+    if(o===s4[0].a){
+      s4s++; feedback4.textContent="✅ Correct!";
+      feedback4.className="feedback correct";
+    }else{
+      feedback4.textContent="❌ Wrong!";
+      feedback4.className="feedback wrong";
     }
-    optsDiv.appendChild(b);
-  });
+    score4.textContent="Score: "+s4s;
+  };
+  options4.appendChild(b);
+ });
 }
-next4();
+load4();
+
+/* GAME 5 */
+const w5=[
+ {w:"blue",a:true},{w:"eat",a:false}
+];
+let s5=0,c5;
+function next5(){
+ c5=w5[Math.floor(Math.random()*w5.length)];
+ word5.textContent=c5.w;
+}
+function check5(ans){
+ feedback5.textContent=ans===c5.a?"✅ Correct!":"❌ Wrong!";
+ feedback5.className="feedback "+(ans===c5.a?"correct":"wrong");
+ if(ans===c5.a) s5++;
+ score5.textContent="Score: "+s5;
+ setTimeout(next5,600);
+}
+next5();
 </script>
 
 </body>
