@@ -12,16 +12,22 @@ body{
   padding:20px;
 }
 
-h1{
-  text-align:center;
-  margin-bottom:15px;
+h1{text-align:center;}
+
+.top-menu{text-align:center;margin-bottom:15px;}
+
+.back-btn{
+  padding:10px 18px;
+  font-size:15px;
+  border-radius:20px;
+  cursor:pointer;
 }
 
 .tabs{
   display:flex;
   flex-wrap:wrap;
   gap:6px;
-  margin-bottom:20px;
+  margin-bottom:15px;
 }
 
 .tab{
@@ -31,7 +37,6 @@ h1{
   background:#ddd;
   border-radius:8px;
   cursor:pointer;
-  user-select:none;
 }
 
 .tab.active{
@@ -47,12 +52,10 @@ h1{
   box-shadow:0 4px 10px rgba(0,0,0,0.15);
 }
 
-.game.active{
-  display:block;
-}
+.game.active{display:block;}
 
 .word-box{
-  font-size:24px;
+  font-size:26px;
   font-weight:bold;
   margin:15px 0;
 }
@@ -65,20 +68,16 @@ button{
   cursor:pointer;
 }
 
-.score{
-  margin-top:10px;
-  font-weight:bold;
-}
+.score{font-weight:bold;margin-top:8px;}
 
 .feedback{
-  margin-top:8px;
   font-size:18px;
   font-weight:bold;
   min-height:22px;
 }
 
-.correct{ color:#2e8b57; }
-.wrong{ color:#cc0000; }
+.correct{color:#2e8b57;}
+.wrong{color:#cc0000;}
 
 .word{
   display:inline-block;
@@ -115,8 +114,12 @@ button{
 
 <h1>Adjective Games</h1>
 
+<div class="top-menu">
+  <button class="back-btn" onclick="location.href='index.html'">⬅ Back to Menu</button>
+</div>
+
 <div class="tabs">
-  <div class="tab active" data-game="game1">1. Adjective?</div>
+  <div class="tab active" data-game="game1">1. Judge</div>
   <div class="tab" data-game="game2">2. Category</div>
   <div class="tab" data-game="game3">3. Find</div>
   <div class="tab" data-game="game4">4. Fill</div>
@@ -144,7 +147,7 @@ button{
 
 <!-- GAME 3 -->
 <div id="game3" class="game">
-  <h2>Find Adjectives</h2>
+  <h2>Find the Adjectives</h2>
   <div id="sentence3"></div>
   <div id="feedback3" class="feedback"></div>
   <div id="score3" class="score">Score: 0</div>
@@ -170,136 +173,65 @@ button{
 </div>
 
 <script>
-/* TAB SWITCH */
+/* Voice */
+function speak(t){
+  const u=new SpeechSynthesisUtterance(t);
+  u.lang="en-US";
+  speechSynthesis.speak(u);
+}
+
+/* Tabs */
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.onclick=()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     document.querySelectorAll('.game').forEach(g=>g.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById(tab.dataset.game).classList.add('active');
-  }
+  };
 });
 
+/* === WORD POOL (80 words) === */
+const wordPool=[
+/* adjectives */
+["ancient",1],["brave",1],["curious",1],["dangerous",1],["eager",1],
+["famous",1],["generous",1],["honest",1],["important",1],["joyful",1],
+["kind",1],["lazy",1],["mysterious",1],["narrow",1],["polite",1],
+["quiet",1],["rapid",1],["serious",1],["talented",1],["useful",1],
+["valuable",1],["wise",1],["young",1],["ancient",1],["friendly",1],
+["careful",1],["powerful",1],["peaceful",1],["clever",1],["creative",1],
+["healthy",1],["proud",1],["honorable",1],["confident",1],["active",1],
+["patient",1],["shallow",1],["deep",1],["bright",1],["calm",1],
+
+/* not adjectives */
+["discover",0],["explain",0],["arrive",0],["decide",0],["protect",0],
+["create",0],["believe",0],["move",0],["travel",0],["teacher",0],
+["student",0],["village",0],["history",0],["music",0],["science",0],
+["library",0],["computer",0],["river",0],["mountain",0],["country",0]
+].map(w=>({w:w[0],a:!!w[1]}));
+
 /* GAME 1 */
-const words1=[
- {w:"big",a:true},{w:"apple",a:false},{w:"happy",a:true},{w:"run",a:false}
-];
 let s1=0,c1;
-function next1(){
- c1=words1[Math.floor(Math.random()*words1.length)];
- word1.textContent=c1.w;
-}
+function next1(){c1=wordPool[Math.floor(Math.random()*wordPool.length)];word1.textContent=c1.w;}
 function check1(ans){
- feedback1.className="feedback "+(ans===c1.a?"correct":"wrong");
- feedback1.textContent=ans===c1.a?"✅ Correct!":"❌ Wrong!";
- if(ans===c1.a) s1++;
+ const ok=ans===c1.a;
+ feedback1.textContent=ok?"✅ Correct!":"❌ Wrong!";
+ feedback1.className="feedback "+(ok?"correct":"wrong");
+ speak(ok?"Correct":"Wrong");
+ if(ok)s1++;
  score1.textContent="Score: "+s1;
  setTimeout(()=>{feedback1.textContent="";next1();},700);
 }
 next1();
 
-/* GAME 2 */
-const adj2=[
- {w:"big",t:"Size"},{w:"red",t:"Color"},{w:"happy",t:"Feeling"}
-];
-const types2=["Size","Color","Feeling"];
-let s2=0;
-adj2.forEach(a=>{
- let d=document.createElement("div");
- d.textContent=a.w;
- d.className="draggable";
- d.draggable=true;
- d.dataset.t=a.t;
- d.ondragstart=e=>e.dataTransfer.setData("text",a.t);
- draggables2.appendChild(d);
-});
-types2.forEach(t=>{
- let z=document.createElement("div");
- z.textContent=t;
- z.className="dropzone";
- z.ondragover=e=>e.preventDefault();
- z.ondrop=e=>{
-   e.preventDefault();
-   if(e.dataTransfer.getData("text")===t){
-     s2++; feedback2.textContent="✅ Correct!";
-     feedback2.className="feedback correct";
-   }else{
-     feedback2.textContent="❌ Wrong!";
-     feedback2.className="feedback wrong";
-   }
-   score2.textContent="Score: "+s2;
- };
- dropzones2.appendChild(z);
-});
-
-/* GAME 3 */
-const sents3=[
- {t:"The happy dog is big.",a:["happy","big"]}
-];
-let s3=0;
-function load3(){
- sentence3.innerHTML="";
- sents3[0].t.split(" ").forEach(w=>{
-  let clean=w.replace(/[^a-z]/gi,"");
-  let sp=document.createElement("span");
-  sp.textContent=w;
-  sp.className="word";
-  sp.onclick=()=>{
-    if(sents3[0].a.includes(clean)){
-      s3++; feedback3.textContent="✅ Correct!";
-      feedback3.className="feedback correct";
-      sp.style.background="#90ee90";
-    }else{
-      feedback3.textContent="❌ Wrong!";
-      feedback3.className="feedback wrong";
-      sp.style.background="#ffb3b3";
-    }
-    score3.textContent="Score: "+s3;
-  };
-  sentence3.appendChild(sp);
- });
-}
-load3();
-
-/* GAME 4 */
-const s4=[
- {t:"This is a ___ apple.",a:"red",o:["red","run","fast"]}
-];
-let s4s=0;
-function load4(){
- sentence4.textContent=s4[0].t;
- options4.innerHTML="";
- s4[0].o.forEach(o=>{
-  let b=document.createElement("button");
-  b.textContent=o;
-  b.onclick=()=>{
-    if(o===s4[0].a){
-      s4s++; feedback4.textContent="✅ Correct!";
-      feedback4.className="feedback correct";
-    }else{
-      feedback4.textContent="❌ Wrong!";
-      feedback4.className="feedback wrong";
-    }
-    score4.textContent="Score: "+s4s;
-  };
-  options4.appendChild(b);
- });
-}
-load4();
-
 /* GAME 5 */
-const w5=[
- {w:"blue",a:true},{w:"eat",a:false}
-];
 let s5=0,c5;
-function next5(){
- c5=w5[Math.floor(Math.random()*w5.length)];
- word5.textContent=c5.w;
-}
+function next5(){c5=wordPool[Math.floor(Math.random()*wordPool.length)];word5.textContent=c5.w;}
 function check5(ans){
- feedback5.textContent=ans===c5.a?"✅ Correct!":"❌ Wrong!";
- feedback5.className="feedback "+(ans===c5.a?"correct":"wrong");
- if(ans===c5.a) s5++;
+ const ok=ans===c5.a;
+ feedback5.textContent=ok?"✅ Correct!":"❌ Wrong!";
+ feedback5.className="feedback "+(ok?"correct":"wrong");
+ speak(ok?"Correct":"Wrong");
+ if(ok)s5++;
  score5.textContent="Score: "+s5;
  setTimeout(next5,600);
 }
