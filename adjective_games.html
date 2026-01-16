@@ -20,9 +20,7 @@ button{padding:10px 16px;font-size:16px;margin:5px;border-radius:6px}
 .correct{color:#2e8b57}
 .wrong{color:#cc0000}
 .menu-btn{margin-top:20px;background:#555;color:#fff}
-.draggable{display:inline-block;padding:8px;margin:5px;border:1px solid #aaa;border-radius:6px;background:#fff}
-.dropzone{display:inline-block;padding:10px;margin:5px;border:2px dashed #aaa;border-radius:6px;min-width:90px}
-span.word{padding:6px;margin:3px;border:1px solid #ccc;display:inline-block}
+span.word{padding:6px;margin:3px;border:1px solid #ccc;display:inline-block;cursor:pointer}
 </style>
 </head>
 
@@ -40,21 +38,19 @@ span.word{padding:6px;margin:3px;border:1px solid #ccc;display:inline-block}
 
 <!-- Game 1 -->
 <div id="g1" class="game active">
-  <div class="word-box" id="w1"></div>
+  <div id="w1" class="word-box"></div>
   <button id="b1a">Adjective</button>
   <button id="b1b">Not Adjective</button>
   <div id="f1" class="feedback"></div>
   <div id="s1" class="score">Score: 0</div>
-  <button class="menu-btn" onclick="goMenu()">Menu</button>
 </div>
 
 <!-- Game 2 -->
 <div id="g2" class="game">
-  <h2>Classify Adjectives</h2>
-  <div id="drag2"></div>
-  <div id="drop2"></div>
+  <h2>Classify the adjective</h2>
+  <div id="words2"></div>
+  <div id="types2"></div>
   <div id="s2" class="score">Score: 0</div>
-  <button class="menu-btn" onclick="goMenu()">Menu</button>
 </div>
 
 <!-- Game 3 -->
@@ -62,7 +58,6 @@ span.word{padding:6px;margin:3px;border:1px solid #ccc;display:inline-block}
   <h2>Tap the adjective</h2>
   <div id="sent3"></div>
   <div id="s3" class="score">Score: 0</div>
-  <button class="menu-btn" onclick="goMenu()">Menu</button>
 </div>
 
 <!-- Game 4 -->
@@ -71,115 +66,140 @@ span.word{padding:6px;margin:3px;border:1px solid #ccc;display:inline-block}
   <div id="sent4"></div>
   <div id="opts4"></div>
   <div id="s4" class="score">Score: 0</div>
-  <button class="menu-btn" onclick="goMenu()">Menu</button>
 </div>
 
 <!-- Game 5 -->
 <div id="g5" class="game">
-  <div class="word-box" id="w5"></div>
+  <div id="w5" class="word-box"></div>
   <button id="b5a">Adjective</button>
   <button id="b5b">Not Adjective</button>
   <div id="f5" class="feedback"></div>
   <div id="s5" class="score">Score: 0</div>
-  <button class="menu-btn" onclick="goMenu()">Menu</button>
 </div>
 
 <script>
-/* ---------- Common ---------- */
+/* ---------- Utility ---------- */
 const speak=t=>{
   speechSynthesis.cancel();
   speechSynthesis.speak(new SpeechSynthesisUtterance(t));
 };
 
-document.querySelectorAll('.tab').forEach(tab=>{
-  ['click','touchstart'].forEach(ev=>{
-    tab.addEventListener(ev,()=>{
-      document.querySelectorAll('.tab,.game').forEach(e=>e.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById(tab.dataset.game).classList.add('active');
-      if(tab.dataset.game==='g2') initGame2();
+const shuffle=a=>a.sort(()=>Math.random()-0.5);
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll(".tab").forEach(tab=>{
+  ["click","touchstart"].forEach(ev=>{
+    tab.addEventListener(ev,e=>{
+      e.preventDefault();
+      document.querySelectorAll(".tab,.game").forEach(x=>x.classList.remove("active"));
+      tab.classList.add("active");
+      document.getElementById(tab.dataset.game).classList.add("active");
+      if(tab.dataset.game==="g2") initGame2();
     });
   });
 });
 
-function goMenu(){
-  document.querySelectorAll('.game').forEach(g=>g.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelector('.tab').classList.add('active');
-  g1.classList.add('active');
-}
-
-/* ---------- Vocabulary (EFL) ---------- */
-const words=[
-"big","small","fast","slow","clean","dirty","happy","sad","angry","tired",
-"kind","friendly","brave","shy","easy","difficult","early","late","hot","cold",
-"full","empty","strong","weak","loud","quiet","bright","dark","safe","dangerous",
-"run","eat","jump","teacher","student","school","book","apple","chair","dog"
-].map(w=>({w, a:!["run","eat","jump","teacher","student","school","book","apple","chair","dog"].includes(w)}));
+/* ---------- Vocabulary ---------- */
+const baseWords=[
+ "big","small","fast","slow","clean","dirty","happy","sad","angry","tired",
+ "kind","friendly","brave","shy","easy","difficult","early","late","hot","cold",
+ "full","empty","strong","weak","quiet","loud","bright","dark","safe","dangerous"
+];
+const notAdj=["run","eat","jump","teacher","student","school","book","apple","dog","chair"];
+const words=[...baseWords.map(w=>({w,a:true})),...notAdj.map(w=>({w,a:false}))];
 
 /* ---------- Game1 ---------- */
 let i1=0,s1=0;
-function next1(){i1=Math.floor(Math.random()*words.length);w1.textContent=words[i1].w}
-function check1(ans){
+const s1El=s1=document.getElementById("s1");
+function next1(){
+  i1=Math.floor(Math.random()*words.length);
+  w1.textContent=words[i1].w;
+}
+function judge1(ans){
   const ok=ans===words[i1].a;
   f1.textContent=ok?"Correct":"Wrong";
   f1.className="feedback "+(ok?"correct":"wrong");
   speak(ok?"Correct":"Wrong");
-  if(ok)s1++; s1.textContent="Score: "+s1;
+  if(ok)s1El.textContent="Score: "+(++s1);
   setTimeout(next1,600);
 }
-['click','touchstart'].forEach(ev=>{
-  b1a.addEventListener(ev,()=>check1(true));
-  b1b.addEventListener(ev,()=>check1(false));
+["click","touchstart"].forEach(ev=>{
+  b1a.addEventListener(ev,e=>{e.preventDefault();judge1(true)});
+  b1b.addEventListener(ev,e=>{e.preventDefault();judge1(false)});
 });
 next1();
 
 /* ---------- Game2 ---------- */
-let s2=0;
-const types=["Size","Feeling"];
+let s2=0,selected=null;
+const g2Words=[
+ {w:"big",t:"Size"},{w:"small",t:"Size"},
+ {w:"happy",t:"Feeling"},{w:"sad",t:"Feeling"},
+ {w:"clean",t:"Condition"},{w:"dirty",t:"Condition"},
+ {w:"fast",t:"Speed"},{w:"slow",t:"Speed"}
+];
+const g2Types=["Size","Feeling","Condition","Speed"];
 function initGame2(){
-  drag2.innerHTML=""; drop2.innerHTML="";
-  words.filter(x=>x.a).slice(0,20).forEach(o=>{
-    const d=document.createElement("div");
-    d.className="draggable"; d.textContent=o.w;
-    d.draggable=true;
-    d.dataset.type=["big","small","strong","weak"].includes(o.w)?"Size":"Feeling";
-    d.addEventListener("dragstart",e=>e.dataTransfer.setData("t",d.dataset.type));
-    drag2.appendChild(d);
+  words2.innerHTML=""; types2.innerHTML="";
+  g2Words.forEach(o=>{
+    const b=document.createElement("button");
+    b.textContent=o.w;
+    b.onclick=()=>{selected=o;};
+    words2.appendChild(b);
   });
-  types.forEach(t=>{
-    const z=document.createElement("div");
-    z.className="dropzone"; z.textContent=t;
-    z.addEventListener("dragover",e=>e.preventDefault());
-    z.addEventListener("drop",e=>{
-      e.preventDefault();
-      if(e.dataTransfer.getData("t")===t){s2++; speak("Correct")}
-      else speak("Wrong");
-      s2.textContent="Score: "+s2;
-    });
-    drop2.appendChild(z);
+  g2Types.forEach(t=>{
+    const b=document.createElement("button");
+    b.textContent=t;
+    b.onclick=()=>{
+      if(!selected)return;
+      const ok=selected.t===t;
+      speak(ok?"Correct":"Wrong");
+      if(ok)s2++;
+      s2El.textContent="Score: "+s2;
+      selected=null;
+    };
+    types2.appendChild(b);
   });
 }
 
 /* ---------- Game3 ---------- */
 let s3=0;
-const sents3=[
-"The happy dog is big.","She feels tired today.","The room is clean and bright.",
-"It is a hot day.","He is a kind teacher."
-];
+const sents3=shuffle([
+ "The happy dog is big.",
+ "She feels tired today.",
+ "The room is clean and bright.",
+ "It is a hot day.",
+ "He is a kind teacher.",
+ "The small cat is fast.",
+ "The box is heavy.",
+ "The boy is brave.",
+ "The water is cold.",
+ "The class is quiet.",
+ "The bag is full.",
+ "The test is easy.",
+ "The girl is friendly.",
+ "The night is dark.",
+ "The road is long.",
+ "The man is strong.",
+ "The room is empty.",
+ "The answer is right.",
+ "The sound is loud.",
+ "The place is safe."
+]);
+let idx3=0;
 function next3(){
-  const t=sents3[Math.floor(Math.random()*sents3.length)];
   sent3.innerHTML="";
-  t.split(" ").forEach(w=>{
+  sents3[idx3++%sents3.length].split(" ").forEach(w=>{
     const c=w.replace(/[^a-z]/gi,"");
     const sp=document.createElement("span");
     sp.className="word"; sp.textContent=w;
-    ['click','touchstart'].forEach(ev=>{
-      sp.addEventListener(ev,()=>{
-        const ok=words.find(x=>x.w===c)?.a;
+    ["click","touchstart"].forEach(ev=>{
+      sp.addEventListener(ev,e=>{
+        e.preventDefault();
+        const ok=baseWords.includes(c);
         sp.style.background=ok?"#90ee90":"#ff7f7f";
         speak(ok?"Correct":"Wrong");
-        if(ok)s3++; s3.textContent="Score: "+s3;
+        if(ok)s3++;
+        s3El.textContent="Score: "+s3;
         setTimeout(next3,700);
       });
     });
@@ -190,21 +210,42 @@ next3();
 
 /* ---------- Game4 ---------- */
 let s4=0;
-const sents4=[
-["This is a ___ dog.","big"],["It is a ___ room.","clean"],
-["She is ___ today.","happy"],["The box is ___ .","heavy"]
-];
+const sents4=shuffle([
+ ["This is a ___ dog.","big"],
+ ["It is a ___ room.","clean"],
+ ["She is ___ today.","happy"],
+ ["The box is ___ .","heavy"],
+ ["The test is ___ .","easy"],
+ ["The water is ___ .","cold"],
+ ["The boy is ___ .","kind"],
+ ["The class is ___ .","quiet"],
+ ["The road is ___ .","long"],
+ ["The bag is ___ .","full"],
+ ["The girl is ___ .","friendly"],
+ ["The night is ___ .","dark"],
+ ["The man is ___ .","strong"],
+ ["The place is ___ .","safe"],
+ ["The sound is ___ .","loud"],
+ ["The cat is ___ .","small"],
+ ["The day is ___ .","hot"],
+ ["The answer is ___ .","right"],
+ ["The room is ___ .","empty"],
+ ["The test is ___ .","difficult"]
+]);
+let idx4=0;
 function next4(){
-  const q=sents4[Math.floor(Math.random()*sents4.length)];
+  const q=sents4[idx4++%sents4.length];
   sent4.textContent=q[0]; opts4.innerHTML="";
-  ["big","run","happy","clean"].forEach(o=>{
+  shuffle([...baseWords, "run"]).slice(0,4).forEach(o=>{
     const b=document.createElement("button");
     b.textContent=o;
-    ['click','touchstart'].forEach(ev=>{
-      b.addEventListener(ev,()=>{
+    ["click","touchstart"].forEach(ev=>{
+      b.addEventListener(ev,e=>{
+        e.preventDefault();
         const ok=o===q[1];
         speak(ok?"Correct":"Wrong");
-        if(ok)s4++; s4.textContent="Score: "+s4;
+        if(ok)s4++;
+        s4El.textContent="Score: "+s4;
         setTimeout(next4,700);
       });
     });
@@ -214,21 +255,39 @@ function next4(){
 next4();
 
 /* ---------- Game5 ---------- */
-let i5=0,s5=0;
-function next5(){i5=Math.floor(Math.random()*words.length);w5.textContent=words[i5].w}
-function check5(ans){
+let i5=0,s5=0,timer5=null,lock5=false;
+function next5(){
+  clearTimeout(timer5);
+  lock5=false;
+  i5=Math.floor(Math.random()*words.length);
+  w5.textContent=words[i5].w;
+  f5.textContent="";
+  timer5=setTimeout(()=>{
+    if(lock5)return;
+    lock5=true;
+    f5.textContent="Time up";
+    f5.className="feedback wrong";
+    speak("Time up");
+    setTimeout(next5,600);
+  },3000);
+}
+function judge5(ans){
+  if(lock5)return;
+  lock5=true;
+  clearTimeout(timer5);
   const ok=ans===words[i5].a;
   f5.textContent=ok?"Correct":"Wrong";
   f5.className="feedback "+(ok?"correct":"wrong");
   speak(ok?"Correct":"Wrong");
-  if(ok)s5++; s5.textContent="Score: "+s5;
-  setTimeout(next5,400);
+  if(ok)s5El.textContent="Score: "+(++s5);
+  setTimeout(next5,600);
 }
-['click','touchstart'].forEach(ev=>{
-  b5a.addEventListener(ev,()=>check5(true));
-  b5b.addEventListener(ev,()=>check5(false));
+["click","touchstart"].forEach(ev=>{
+  b5a.addEventListener(ev,e=>{e.preventDefault();judge5(true)});
+  b5b.addEventListener(ev,e=>{e.preventDefault();judge5(false)});
 });
 next5();
 </script>
+
 </body>
 </html>
