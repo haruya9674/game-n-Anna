@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Story 6 – The Shadow Appears</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  font-family:system-ui,sans-serif;
+  padding:20px;
+  background:linear-gradient(180deg,#fff6fb,#f0fbff);
+  max-width:620px;
+  margin:auto;
+}
+
+h1{
+  text-align:center;
+  margin-bottom:6px;
+}
+
+.sub{
+  text-align:center;
+  font-size:14px;
+  color:#666;
+  margin-bottom:20px;
+}
+
+.story{
+  background:white;
+  padding:18px;
+  border-radius:18px;
+  box-shadow:0 6px 14px rgba(0,0,0,.15);
+  font-size:18px;
+  line-height:1.7;
+}
+
+.sentence{
+  margin-bottom:10px;
+  cursor:pointer;
+}
+
+.sentence:active{
+  background:#fff0f6;
+  border-radius:8px;
+}
+
+.controls{
+  text-align:center;
+  margin-top:18px;
+}
+
+button,a{
+  display:inline-block;
+  margin:6px;
+  padding:12px 18px;
+  border:none;
+  border-radius:14px;
+  font-size:16px;
+  background:white;
+  text-decoration:none;
+  color:#333;
+  box-shadow:0 4px 10px rgba(0,0,0,.2);
+  cursor:pointer;
+}
+
+button:active{
+  transform:scale(0.96);
+}
+</style>
+</head>
+
+<body>
+
+<a href="index.html">← Back to Menu</a>
+
+<h1>📖 Story 6</h1>
+<div class="sub">The Shadow Appears</div>
+
+<div class="story" id="story">
+
+  <div class="sentence" onclick="speak(this)">
+    The air suddenly became cold and quiet.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    The forest sounds slowly faded away.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    A dark shadow appeared between the trees.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    It moved without making any sound.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    The child’s heart began to beat faster.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    The glowing stone trembled softly in the child’s hand.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    The shadow stopped and slowly turned.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    Two faint eyes shined in the darkness.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    The child stood still, trying not to breathe.
+  </div>
+
+  <div class="sentence" onclick="speak(this)">
+    This was the first true enemy.
+  </div>
+
+</div>
+
+<div class="controls">
+  <button onclick="readAll()">🔊 Read All</button>
+  <a href="story7.html">Next Story →</a>
+</div>
+
+<script>
+function createVoice(text){
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "en-US";
+  msg.rate = 0.6;
+  msg.pitch = 1.4;
+  msg.volume = 1.0;
+
+  const voices = speechSynthesis.getVoices();
+  const soft = voices.find(v =>
+    v.lang.startsWith("en") &&
+    (v.name.includes("Female") || v.name.includes("Samantha"))
+  );
+
+  if(soft) msg.voice = soft;
+  return msg;
+}
+
+function speak(el){
+  speechSynthesis.cancel();
+  speechSynthesis.speak(createVoice(el.innerText));
+}
+
+function readAll(){
+  speechSynthesis.cancel();
+  const sentences = document.querySelectorAll(".sentence");
+  sentences.forEach((s,i)=>{
+    const msg = createVoice(s.innerText);
+    msg.startTime = i * 10;
+    speechSynthesis.speak(msg);
+  });
+}
+</script>
+
+</body>
+</html>
