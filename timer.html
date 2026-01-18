@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Life Stopwatch</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  font-family:system-ui,sans-serif;
+  background:linear-gradient(180deg,#f7faff,#eef6ff);
+  padding:20px;
+  max-width:520px;
+  margin:auto;
+}
+h1{text-align:center;margin-bottom:16px;}
+.card{
+  background:white;
+  padding:20px;
+  border-radius:18px;
+  box-shadow:0 6px 14px rgba(0,0,0,.15);
+  margin-bottom:16px;
+}
+input{
+  width:100%;
+  padding:14px;
+  font-size:18px;
+  border-radius:14px;
+  border:1px solid #ccc;
+}
+.time{
+  font-size:20px;
+  line-height:1.8;
+  text-align:center;
+}
+.big{
+  font-size:28px;
+  font-weight:bold;
+}
+.note{
+  font-size:13px;
+  color:#666;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<h1>⏱️ Life Stopwatch</h1>
+
+<div class="card">
+  <input type="date" id="birthday">
+</div>
+
+<div class="card">
+  <div class="time">
+    <div class="big" id="days">— days</div>
+    <div id="detail">—</div>
+  </div>
+</div>
+
+<div class="note">
+生まれた瞬間から「今」までをリアルタイム表示します
+</div>
+
+<script>
+let timer = null;
+
+document.getElementById("birthday").addEventListener("change", start);
+
+function start(){
+  if(timer) clearInterval(timer);
+  update();
+  timer = setInterval(update, 1000);
+}
+
+function update(){
+  const b = document.getElementById("birthday").value;
+  if(!b) return;
+
+  const birth = new Date(b);
+  const now = new Date();
+  let diff = Math.floor((now - birth) / 1000);
+
+  if(diff < 0) return;
+
+  const days = Math.floor(diff / 86400);
+  diff %= 86400;
+  const hours = Math.floor(diff / 3600);
+  diff %= 3600;
+  const minutes = Math.floor(diff / 60);
+  const seconds = diff % 60;
+
+  document.getElementById("days").innerText =
+    `${days.toLocaleString()} days`;
+
+  document.getElementById("detail").innerText =
+    `${hours} hours ${minutes} minutes ${seconds} seconds`;
+}
+</script>
+
+</body>
+</html>
