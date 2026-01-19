@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Life Timeline</title>
+<title>Life Timer</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -13,7 +13,17 @@ body{
   max-width:560px;
   margin:auto;
 }
-h1{text-align:center;margin-bottom:16px;}
+h1{text-align:center;margin-bottom:10px;}
+.lang{
+  text-align:center;
+  margin-bottom:16px;
+}
+.lang button{
+  width:auto;
+  margin:0 4px;
+  padding:6px 12px;
+  font-size:14px;
+}
 .card{
   background:white;
   padding:18px;
@@ -63,41 +73,91 @@ a{text-decoration:none;color:#333;}
 
 <body>
 
-<h1>⏳ Life Timeline</h1>
+<h1 id="appTitle">⏱️ Counter Timer</h1>
+
+<div class="lang">
+  <button onclick="setLang('ja')">日本語</button>
+  <button onclick="setLang('en')">EN</button>
+  <button onclick="setLang('ko')">한국어</button>
+</div>
 
 <div class="card">
-  <input id="title" placeholder="Event title (Birthday, Trip, Goal)">
+  <input id="title" placeholder="">
   <input type="date" id="date">
-  <button onclick="addEvent()">Add Event</button>
+  <button onclick="addEvent()" id="addBtn"></button>
 </div>
 
 <div id="list"></div>
 
 <div class="back">
-  <a href="index.html">← Back to Main Menu</a>
+  <a href="index.html" id="backBtn"></a>
 </div>
 
 <script>
+let lang = localStorage.getItem("lang") || "en";
+
+const text = {
+  ja:{
+    app:"⏱️ カウンタータイマー",
+    title:"イベント名（誕生日・記念日・予定）",
+    add:"追加",
+    since:"経過",
+    until:"まで残り",
+    days:"日",
+    back:"← メインメニューへ戻る"
+  },
+  en:{
+    app:"⏱️ Counter Timer",
+    title:"Event title (Birthday, Memory, Goal)",
+    add:"Add Event",
+    since:"Since",
+    until:"Until",
+    days:"days",
+    back:"← Back to Main Menu"
+  },
+  ko:{
+    app:"⏱️ 카운터 타이머",
+    title:"이벤트 이름 (생일, 추억, 목표)",
+    add:"추가",
+    since:"이후",
+    until:"까지",
+    days:"일",
+    back:"← 메인 메뉴로"
+  }
+};
+
 let events = JSON.parse(localStorage.getItem("lifeEvents") || "[]");
 
-function addEvent(){
-  const title = document.getElementById("title").value.trim();
-  const date = document.getElementById("date").value;
-  if(!title || !date) return;
+function setLang(l){
+  lang=l;
+  localStorage.setItem("lang",lang);
+  applyLang();
+}
 
-  events.push({title,date});
-  localStorage.setItem("lifeEvents", JSON.stringify(events));
-  document.getElementById("title").value="";
-  document.getElementById("date").value="";
+function applyLang(){
+  document.documentElement.lang = lang;
+  appTitle.innerText = text[lang].app;
+  title.placeholder = text[lang].title;
+  addBtn.innerText = text[lang].add;
+  backBtn.innerText = text[lang].back;
+}
+
+function addEvent(){
+  const t = title.value.trim();
+  const d = date.value;
+  if(!t || !d) return;
+
+  events.push({title:t,date:d});
+  localStorage.setItem("lifeEvents",JSON.stringify(events));
+  title.value="";
+  date.value="";
   render();
 }
 
 function render(){
-  const list = document.getElementById("list");
   list.innerHTML="";
-
   events.forEach((e,i)=>{
-    const div = document.createElement("div");
+    const div=document.createElement("div");
     div.className="card event";
     div.innerHTML=`
       <div class="title">${e.title}</div>
@@ -109,35 +169,35 @@ function render(){
 }
 
 function update(){
-  const now = new Date();
-
+  const now=new Date();
   events.forEach((e,i)=>{
-    const target = new Date(e.date);
-    let diff = Math.floor((now - target)/1000);
-    let label = "Since";
+    const target=new Date(e.date);
+    let diff=Math.floor((now-target)/1000);
+    let label=text[lang].since;
 
-    if(diff < 0){
-      diff = Math.abs(diff);
-      label = "Until";
+    if(diff<0){
+      diff=Math.abs(diff);
+      label=text[lang].until;
     }
 
-    const days = Math.floor(diff/86400);
+    const days=Math.floor(diff/86400);
     diff%=86400;
-    const h = Math.floor(diff/3600);
+    const h=Math.floor(diff/3600);
     diff%=3600;
-    const m = Math.floor(diff/60);
-    const s = diff%60;
+    const m=Math.floor(diff/60);
+    const s=diff%60;
 
-    const el = document.getElementById("t"+i);
+    const el=document.getElementById("t"+i);
     if(el){
-      el.innerHTML =
+      el.innerHTML=
         `<b>${label}</b><br>
-         ${days.toLocaleString()} days<br>
+         ${days.toLocaleString()} ${text[lang].days}<br>
          ${h}h ${m}m ${s}s`;
     }
   });
 }
 
+applyLang();
 render();
 update();
 setInterval(update,1000);
